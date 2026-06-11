@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - run: npm ci --legacy-peer-deps
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: ESLint
+        run: npx eslint src/
+
+      - name: Jest tests
+        run: npx jest --passWithNoTests
