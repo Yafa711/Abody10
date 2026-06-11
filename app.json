@@ -1,0 +1,79 @@
+{
+  "expo": {
+    "name": "NewElectroStore",
+    "slug": "newelectrostore",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0D0D0D",
+    "primaryColor": "#D4A853",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D0D0D"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/your-project-id"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.newelectrostore.app",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to upload payment transfer receipts.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to upload payment receipts."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.newelectrostore.app",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "POST_NOTIFICATIONS"
+      ],
+      "blockedPermissions": [
+        "RECORD_AUDIO",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_CONTACTS",
+        "WRITE_CONTACTS",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "backgroundColor": "#0D0D0D",
+      "themeColor": "#D4A853"
+    },
+    "plugins": [
+      "expo-image-picker",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-foreground.png",
+          "color": "#D4A853"
+        }
+      ]
+    ],
+    "extra": {
+      "supabaseUrl": "https://rjcqkwgjqeqwzfbedwav.supabase.co",
+      "supabaseAnonKey": "sb_publishable_1Uz2U4l6oUH67i7sjTyr0g_rwqRFPIO",
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
+  }
+}
