@@ -64,6 +64,7 @@ function GlobalErrorHandler({ children }: { children: React.ReactNode }) {
         }
       };
     }
+    return undefined
   }, [handleError]);
 
   return <>{children}</>;
