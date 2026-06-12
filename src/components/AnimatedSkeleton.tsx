@@ -4,8 +4,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
-  withTiming,
-  Easing,
+  withSpring,
   cancelAnimation,
 } from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
@@ -23,10 +22,7 @@ function SkeletonBox({ width = '100%', height, borderRadius = 8, style }: Skelet
 
   useEffect(() => {
     opacity.value = withRepeat(
-      withTiming(0.7, {
-        duration: 1000,
-        easing: Easing.inOut(Easing.sin),
-      }),
+      withSpring(0.7, { stiffness: 40, damping: 8 }),
       -1,
       true,
     );

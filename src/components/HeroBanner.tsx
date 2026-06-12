@@ -32,8 +32,8 @@ function BannerSlide({ item, index, activeIndex, onPress }: {
 
   useEffect(() => {
     const isActive = index === activeIndex;
-    scale.value = withSpring(isActive ? 1 : 0.85, { damping: 15 });
-    opacity.value = withSpring(isActive ? 1 : 0.6, { damping: 15 });
+    scale.value = withSpring(isActive ? 1 : 0.85, { damping: 15, stiffness: 100 });
+    opacity.value = withSpring(isActive ? 1 : 0.6, { damping: 15, stiffness: 100 });
   }, [activeIndex]);
 
   const animatedStyle = useAnimatedStyle(() => ({

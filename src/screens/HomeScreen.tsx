@@ -11,8 +11,6 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
-  Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
 import { useProducts, useCategories, useFavorites } from '../hooks';
@@ -41,7 +39,7 @@ function AnimatedSection({ children, delay = 0, style }: {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      opacity.value = withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) });
+      opacity.value = withSpring(1, { damping: 14, stiffness: 100 });
       translateY.value = withSpring(0, { damping: 20, stiffness: 100 });
     }, delay);
     return () => clearTimeout(t);

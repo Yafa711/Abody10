@@ -3,9 +3,8 @@ import { View, Image, Dimensions, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  withSpring,
   withRepeat,
-  Easing,
   cancelAnimation,
 } from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
@@ -42,32 +41,21 @@ function AnimatedProduct({
   const staggerDelay = (index / total) * 3000;
 
   useEffect(() => {
-    const animDuration = 6000;
-
     const timeout = setTimeout(() => {
       translateX.value = withRepeat(
-        withTiming(-300, {
-          duration: animDuration,
-          easing: Easing.inOut(Easing.sin),
-        }),
+        withSpring(-300, { stiffness: 30, damping: 15 }),
         -1,
         false,
       );
 
       rotate.value = withRepeat(
-        withTiming(720, {
-          duration: animDuration,
-          easing: Easing.linear,
-        }),
+        withSpring(720, { stiffness: 30, damping: 15 }),
         -1,
         false,
       );
 
       swingOffset.value = withRepeat(
-        withTiming(1, {
-          duration: animDuration,
-          easing: Easing.inOut(Easing.sin),
-        }),
+        withSpring(1, { stiffness: 30, damping: 15 }),
         -1,
         false,
       );

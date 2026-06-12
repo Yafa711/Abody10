@@ -5,8 +5,6 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
-  Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
 import { Product } from '../types/product';
@@ -38,14 +36,8 @@ export default function ProductCard({
   useEffect(() => {
     const delay = index * 80;
     setTimeout(() => {
-      enterOpacity.value = withTiming(1, {
-        duration: 400,
-        easing: Easing.out(Easing.cubic),
-      });
-      enterTranslateY.value = withSpring(0, {
-        damping: 20,
-        stiffness: 120,
-      });
+      enterOpacity.value = withSpring(1, { damping: 14, stiffness: 100 });
+      enterTranslateY.value = withSpring(0, { damping: 20, stiffness: 120 });
     }, delay);
   }, []);
 
