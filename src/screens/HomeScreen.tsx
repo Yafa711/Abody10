@@ -35,19 +35,21 @@ function AnimatedSection({ children, delay = 0, style }: {
   style?: any;
 }) {
   const opacity = useSharedValue(0);
-  const translateY = useSharedValue(24);
+  const translateY = useSharedValue(40);
+  const scale = useSharedValue(0.95);
 
   useEffect(() => {
     const t = setTimeout(() => {
-      opacity.value = withSpring(1, { damping: 14, stiffness: 100 });
-      translateY.value = withSpring(0, { damping: 20, stiffness: 100 });
+      opacity.value = withSpring(1, { damping: 16, stiffness: 120 });
+      translateY.value = withSpring(0, { damping: 20, stiffness: 120 });
+      scale.value = withSpring(1, { damping: 16, stiffness: 120 });
     }, delay);
     return () => clearTimeout(t);
   }, []);
 
   const animStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    transform: [{ translateY: translateY.value }],
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
   }));
 
   return <Animated.View style={[animStyle, style]}>{children}</Animated.View>;

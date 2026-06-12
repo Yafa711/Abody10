@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useTheme } from '../../themes/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../../components/ui/Button';
@@ -13,6 +14,39 @@ export default function LoginScreen({ navigation }: any) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const logoScale = useSharedValue(0);
+  const logoOpacity = useSharedValue(0);
+  const titleY = useSharedValue(30);
+  const titleOpacity = useSharedValue(0);
+  const formY = useSharedValue(40);
+  const formOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    logoScale.value = withSpring(1, { damping: 10, stiffness: 100 });
+    logoOpacity.value = withSpring(1, { damping: 10, stiffness: 100 });
+    setTimeout(() => {
+      titleY.value = withSpring(0, { damping: 14, stiffness: 100 });
+      titleOpacity.value = withSpring(1, { damping: 14, stiffness: 100 });
+    }, 200);
+    setTimeout(() => {
+      formY.value = withSpring(0, { damping: 16, stiffness: 100 });
+      formOpacity.value = withSpring(1, { damping: 16, stiffness: 100 });
+    }, 400);
+  }, []);
+
+  const logoStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: logoScale.value }],
+    opacity: logoOpacity.value,
+  }));
+  const titleStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: titleY.value }],
+    opacity: titleOpacity.value,
+  }));
+  const formStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: formY.value }],
+    opacity: formOpacity.value,
+  }));
 
   const handleLogin = async () => {
     setLoading(true);
@@ -40,7 +74,7 @@ export default function LoginScreen({ navigation }: any) {
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: spacing.xl }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ alignItems: 'center', marginBottom: spacing.xxxxl }}>
+        <Animated.View style={[{ alignItems: 'center', marginBottom: spacing.lg }, logoStyle]}>
           <View style={{
             width: 80,
             height: 80,
@@ -48,18 +82,20 @@ export default function LoginScreen({ navigation }: any) {
             backgroundColor: colors.primaryLight,
             justifyContent: 'center',
             alignItems: 'center',
-            marginBottom: spacing.lg,
           }}>
             <Ionicons name="flash" size={36} color={colors.primary} />
           </View>
+        </Animated.View>
+        <Animated.View style={[{ alignItems: 'center', marginBottom: spacing.xxxxl }, titleStyle]}>
           <Text style={{ fontSize: 36, fontWeight: '700', color: colors.textPrimary, letterSpacing: 1 }}>
-            متجر الإلكترو
+            متجر الكتروني
           </Text>
           <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: spacing.sm }}>
             تسوق بذوق رفيع
           </Text>
-        </View>
+        </Animated.View>
 
+        <Animated.View style={formStyle}>
         <Input
           label="البريد الإلكتروني"
           placeholder="أدخل بريدك الإلكتروني"
@@ -113,6 +149,7 @@ export default function LoginScreen({ navigation }: any) {
             <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '600' }}>إنشاء حساب</Text>
           </TouchableOpacity>
         </View>
+        </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -124,17 +124,20 @@ export default function HeroBanner({ items, onPress, interval = 4000 }: HeroBann
             marginTop: 8,
           }}
         >
-          {items.map((_, i) => (
-            <View
-              key={i}
-              style={{
-                width: i === activeIndex ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: i === activeIndex ? colors.primary : colors.border,
-              }}
-            />
-          ))}
+          {items.map((_, i) => {
+            const isActive = i === activeIndex;
+            return (
+              <View
+                key={i}
+                style={{
+                  width: isActive ? 24 : 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: isActive ? colors.primary : colors.border,
+                }}
+              />
+            );
+          })}
         </View>
       )}
     </View>

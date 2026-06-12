@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "NewElectroStore",
+    "name": "متجر الكتروني",
     "slug": "newelectrostore",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#0D0D0D",
-    "primaryColor": "#D4A853",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FFFFFF",
+    "primaryColor": "#6D28D9",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0D0D0D"
+      "backgroundColor": "#FFFFFF"
     },
     "updates": {
       "fallbackToCacheTimeout": 0,
@@ -55,8 +55,8 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "backgroundColor": "#0D0D0D",
-      "themeColor": "#D4A853"
+      "backgroundColor": "#FFFFFF",
+      "themeColor": "#6D28D9"
     },
     "plugins": [
       "expo-image-picker",
@@ -64,7 +64,7 @@
         "expo-notifications",
         {
           "icon": "./assets/android-icon-foreground.png",
-          "color": "#D4A853"
+          "color": "#6D28D9"
         }
       ]
     ],

@@ -4,7 +4,9 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
   withRepeat,
+  Easing,
   cancelAnimation,
 } from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
@@ -34,6 +36,8 @@ function AnimatedProduct({
   total: number;
 }) {
   const { colors } = useTheme();
+  const enterScale = useSharedValue(0);
+  const enterOpacity = useSharedValue(0);
   const translateX = useSharedValue(SCREEN_WIDTH + 200);
   const rotate = useSharedValue(0);
   const swingOffset = useSharedValue(0);
@@ -42,22 +46,22 @@ function AnimatedProduct({
 
   useEffect(() => {
     const timeout = setTimeout(() => {
+      // Spring for entrance
+      enterScale.value = withSpring(1, { damping: 12, stiffness: 100 });
+      enterOpacity.value = withSpring(1, { damping: 12, stiffness: 100 });
+
+      // Timing-based for continuous rolling (withRepeat + withSpring is unsafe)
       translateX.value = withRepeat(
-        withSpring(-300, { stiffness: 30, damping: 15 }),
-        -1,
-        false,
+        withTiming(-300, { duration: 6000, easing: Easing.inOut(Easing.sin) }),
+        -1, false,
       );
-
       rotate.value = withRepeat(
-        withSpring(720, { stiffness: 30, damping: 15 }),
-        -1,
-        false,
+        withTiming(720, { duration: 6000, easing: Easing.linear }),
+        -1, false,
       );
-
       swingOffset.value = withRepeat(
-        withSpring(1, { stiffness: 30, damping: 15 }),
-        -1,
-        false,
+        withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.sin) }),
+        -1, false,
       );
     }, staggerDelay);
 
@@ -75,7 +79,9 @@ function AnimatedProduct({
     const ropeAngle = Math.sin(progress * Math.PI * 2) * 0.3;
 
     return {
+      opacity: enterOpacity.value,
       transform: [
+        { scale: enterScale.value },
         { translateX: translateX.value },
         { translateY: ROPE_LENGTH + swingY },
         { rotate: `${rotate.value}deg` },

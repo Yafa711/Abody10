@@ -31,7 +31,7 @@ export default function ProductCard({
   const { colors, spacing, radius, typography } = useTheme();
   const scale = useSharedValue(1);
   const enterOpacity = useSharedValue(0);
-  const enterTranslateY = useSharedValue(30);
+  const enterTranslateY = useSharedValue(50);
 
   useEffect(() => {
     const delay = index * 80;
