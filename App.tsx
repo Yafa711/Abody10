@@ -1,6 +1,6 @@
-import React, { Suspense, useEffect, useCallback, useRef } from 'react';
-import { Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import 'react-native-reanimated';
+import React, { useEffect, useCallback, useRef } from 'react';
+import Animated from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './src/navigation/RootNavigator';
@@ -71,6 +71,14 @@ function GlobalErrorHandler({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ReanimatedRoot({ children }: { children: React.ReactNode }) {
+  return (
+    <Animated.View style={{ flex: 1 }}>
+      {children}
+    </Animated.View>
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -81,13 +89,13 @@ export default function App() {
               <ImagePrefetcher>
                 <NotificationInitializer>
                   <CartProvider>
-                    <Suspense fallback={<View style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}><View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: '#EDE9FE', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}><Ionicons name="flash" size={24} color="#6D28D9" /></View><Text style={{ color: '#6D28D9', fontSize: 16, fontWeight: '600' }}>جاري التحميل...</Text></View>}>
+                    <ReanimatedRoot>
                       <RootNavigator />
-                      <StatusBar
-                          backgroundColor="#FFFFFF"
-                          style="dark"
-                        />
-                    </Suspense>
+                    </ReanimatedRoot>
+                    <StatusBar
+                        backgroundColor="#FFFFFF"
+                        style="dark"
+                      />
                   </CartProvider>
                 </NotificationInitializer>
               </ImagePrefetcher>
