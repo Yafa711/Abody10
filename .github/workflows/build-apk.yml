@@ -36,10 +36,16 @@ jobs:
         run: npx expo customize metro.config.js 2>/dev/null || touch metro.config.js
 
       - name: Generate native Android project
-        run: npx expo prebuild --platform android --non-interactive --clean
+        run: CI=true npx expo prebuild --platform android --clean
         env:
           EXPO_PUBLIC_SUPABASE_URL: https://rjcqkwgjqeqwzfbedwav.supabase.co
           EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_1Uz2U4l6oUH67i7sjTyr0g_rwqRFPIO
+
+      - name: Patch Android settings.gradle for CI compatibility
+        run: |
+          # Remove foojay-resolver-convention plugin which fails with gson 2.9.1 (403 from Maven Central)
+          sed -i '/foojay-resolver-convention/d' android/settings.gradle
+          echo "Patched settings.gradle after prebuild"
 
       - name: Bundle JS for Android
         run: |
@@ -51,12 +57,9 @@ jobs:
 
       - name: Verify bundle
         run: ls -lh android/app/src/main/assets/index.android.bundle
-        env:
-          EXPO_PUBLIC_SUPABASE_URL: https://rjcqkwgjqeqwzfbedwav.supabase.co
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_1Uz2U4l6oUH67i7sjTyr0g_rwqRFPIO
 
       - name: Build Debug APK
-        run: cd android && ./gradlew assembleDebug
+        run: cd android && CI=true ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
