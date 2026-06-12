@@ -1,9 +1,7 @@
 -- ============================================
 -- NewElectroStore — Full Backend Deployment
--- Run ONCE in Supabase SQL Editor
+-- Safe to re-run (DROP IF EXISTS on all policies)
 -- ============================================
-
-BEGIN;
 
 -- ============================================
 -- 1. Extensions
@@ -13,7 +11,6 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ============================================
 -- 2. Auto-Confirm Email Trigger
--- Allows login without clicking email confirmation link
 -- ============================================
 CREATE OR REPLACE FUNCTION public.auto_confirm_email()
 RETURNS TRIGGER
@@ -36,9 +33,8 @@ CREATE TRIGGER on_auth_user_auto_confirm
   EXECUTE FUNCTION public.auto_confirm_email();
 
 -- ============================================
--- 3. Tables
+-- 3. Tables (CREATE IF NOT EXISTS)
 -- ============================================
-
 CREATE TABLE IF NOT EXISTS public.profiles (
   id            UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email         TEXT NOT NULL,
@@ -213,10 +209,13 @@ CREATE INDEX IF NOT EXISTS idx_analytics_event_type ON public.analytics_events(e
 CREATE INDEX IF NOT EXISTS idx_analytics_created_at ON public.analytics_events(created_at DESC);
 
 -- ============================================
--- 5. RLS Policies
+-- 5. RLS Policies (DROP IF EXISTS to be re-runnable)
 -- ============================================
 
--- Products
+DROP POLICY IF EXISTS products_select ON public.products;
+DROP POLICY IF EXISTS products_insert ON public.products;
+DROP POLICY IF EXISTS products_update ON public.products;
+DROP POLICY IF EXISTS products_delete ON public.products;
 CREATE POLICY products_select ON public.products FOR SELECT USING (true);
 CREATE POLICY products_insert ON public.products FOR INSERT
   WITH CHECK (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
@@ -225,7 +224,10 @@ CREATE POLICY products_update ON public.products FOR UPDATE
 CREATE POLICY products_delete ON public.products FOR DELETE
   USING (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
 
--- Categories
+DROP POLICY IF EXISTS categories_select ON public.categories;
+DROP POLICY IF EXISTS categories_insert ON public.categories;
+DROP POLICY IF EXISTS categories_update ON public.categories;
+DROP POLICY IF EXISTS categories_delete ON public.categories;
 CREATE POLICY categories_select ON public.categories FOR SELECT USING (true);
 CREATE POLICY categories_insert ON public.categories FOR INSERT
   WITH CHECK (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
@@ -234,7 +236,10 @@ CREATE POLICY categories_update ON public.categories FOR UPDATE
 CREATE POLICY categories_delete ON public.categories FOR DELETE
   USING (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
 
--- Profiles
+DROP POLICY IF EXISTS profiles_select_own ON public.profiles;
+DROP POLICY IF EXISTS profiles_select_admin ON public.profiles;
+DROP POLICY IF EXISTS profiles_update_own ON public.profiles;
+DROP POLICY IF EXISTS profiles_update_admin ON public.profiles;
 CREATE POLICY profiles_select_own ON public.profiles FOR SELECT
   USING (auth.uid() = id);
 CREATE POLICY profiles_select_admin ON public.profiles FOR SELECT
@@ -245,7 +250,10 @@ CREATE POLICY profiles_update_own ON public.profiles FOR UPDATE
 CREATE POLICY profiles_update_admin ON public.profiles FOR UPDATE
   USING (auth.jwt() ->> 'role' = 'super_admin');
 
--- Orders
+DROP POLICY IF EXISTS orders_select_own ON public.orders;
+DROP POLICY IF EXISTS orders_select_admin ON public.orders;
+DROP POLICY IF EXISTS orders_insert ON public.orders;
+DROP POLICY IF EXISTS orders_update_admin ON public.orders;
 CREATE POLICY orders_select_own ON public.orders FOR SELECT
   USING (auth.uid() = user_id);
 CREATE POLICY orders_select_admin ON public.orders FOR SELECT
@@ -255,7 +263,9 @@ CREATE POLICY orders_insert ON public.orders FOR INSERT
 CREATE POLICY orders_update_admin ON public.orders FOR UPDATE
   USING (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
 
--- Order items
+DROP POLICY IF EXISTS order_items_select_own ON public.order_items;
+DROP POLICY IF EXISTS order_items_select_admin ON public.order_items;
+DROP POLICY IF EXISTS order_items_insert ON public.order_items;
 CREATE POLICY order_items_select_own ON public.order_items FOR SELECT
   USING (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid()));
 CREATE POLICY order_items_select_admin ON public.order_items FOR SELECT
@@ -263,7 +273,9 @@ CREATE POLICY order_items_select_admin ON public.order_items FOR SELECT
 CREATE POLICY order_items_insert ON public.order_items FOR INSERT
   WITH CHECK (auth.uid() IS NOT NULL);
 
--- Favorites
+DROP POLICY IF EXISTS favorites_select_own ON public.favorites;
+DROP POLICY IF EXISTS favorites_insert_own ON public.favorites;
+DROP POLICY IF EXISTS favorites_delete_own ON public.favorites;
 CREATE POLICY favorites_select_own ON public.favorites FOR SELECT
   USING (auth.uid() = user_id);
 CREATE POLICY favorites_insert_own ON public.favorites FOR INSERT
@@ -271,7 +283,10 @@ CREATE POLICY favorites_insert_own ON public.favorites FOR INSERT
 CREATE POLICY favorites_delete_own ON public.favorites FOR DELETE
   USING (auth.uid() = user_id);
 
--- Coupons
+DROP POLICY IF EXISTS coupons_select_admin ON public.coupons;
+DROP POLICY IF EXISTS coupons_insert_admin ON public.coupons;
+DROP POLICY IF EXISTS coupons_update_admin ON public.coupons;
+DROP POLICY IF EXISTS coupons_delete_admin ON public.coupons;
 CREATE POLICY coupons_select_admin ON public.coupons FOR SELECT
   USING (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
 CREATE POLICY coupons_insert_admin ON public.coupons FOR INSERT
@@ -281,7 +296,10 @@ CREATE POLICY coupons_update_admin ON public.coupons FOR UPDATE
 CREATE POLICY coupons_delete_admin ON public.coupons FOR DELETE
   USING (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
 
--- Cities
+DROP POLICY IF EXISTS cities_select ON public.cities;
+DROP POLICY IF EXISTS cities_insert_admin ON public.cities;
+DROP POLICY IF EXISTS cities_update_admin ON public.cities;
+DROP POLICY IF EXISTS cities_delete_admin ON public.cities;
 CREATE POLICY cities_select ON public.cities FOR SELECT USING (true);
 CREATE POLICY cities_insert_admin ON public.cities FOR INSERT
   WITH CHECK (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
@@ -290,7 +308,9 @@ CREATE POLICY cities_update_admin ON public.cities FOR UPDATE
 CREATE POLICY cities_delete_admin ON public.cities FOR DELETE
   USING (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
 
--- Push tokens
+DROP POLICY IF EXISTS push_tokens_insert ON public.push_tokens;
+DROP POLICY IF EXISTS push_tokens_update ON public.push_tokens;
+DROP POLICY IF EXISTS push_tokens_select ON public.push_tokens;
 CREATE POLICY push_tokens_insert ON public.push_tokens FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 CREATE POLICY push_tokens_update ON public.push_tokens FOR UPDATE
@@ -298,17 +318,21 @@ CREATE POLICY push_tokens_update ON public.push_tokens FOR UPDATE
 CREATE POLICY push_tokens_select ON public.push_tokens FOR SELECT
   USING (auth.uid() = user_id);
 
--- Analytics
+DROP POLICY IF EXISTS analytics_insert ON public.analytics_events;
 CREATE POLICY analytics_insert ON public.analytics_events FOR INSERT
   WITH CHECK (auth.uid() IS NOT NULL);
 
--- Search queries
+DROP POLICY IF EXISTS search_queries_insert ON public.search_queries;
+DROP POLICY IF EXISTS search_queries_select ON public.search_queries;
 CREATE POLICY search_queries_insert ON public.search_queries FOR INSERT
   WITH CHECK (auth.uid() IS NOT NULL OR auth.uid() IS NULL);
 CREATE POLICY search_queries_select ON public.search_queries FOR SELECT
   USING (auth.uid() IS NOT NULL);
 
--- Banners
+DROP POLICY IF EXISTS banners_select ON public.banners;
+DROP POLICY IF EXISTS banners_insert ON public.banners;
+DROP POLICY IF EXISTS banners_update ON public.banners;
+DROP POLICY IF EXISTS banners_delete ON public.banners;
 CREATE POLICY banners_select ON public.banners FOR SELECT USING (true);
 CREATE POLICY banners_insert ON public.banners FOR INSERT
   WITH CHECK (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
@@ -317,7 +341,9 @@ CREATE POLICY banners_update ON public.banners FOR UPDATE
 CREATE POLICY banners_delete ON public.banners FOR DELETE
   USING (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
 
--- Product images
+DROP POLICY IF EXISTS product_images_select ON public.product_images;
+DROP POLICY IF EXISTS product_images_insert ON public.product_images;
+DROP POLICY IF EXISTS product_images_delete ON public.product_images;
 CREATE POLICY product_images_select ON public.product_images FOR SELECT USING (true);
 CREATE POLICY product_images_insert ON public.product_images FOR INSERT
   WITH CHECK (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
@@ -327,7 +353,6 @@ CREATE POLICY product_images_delete ON public.product_images FOR DELETE
 -- ============================================
 -- 6. Functions (RPCs)
 -- ============================================
-
 CREATE OR REPLACE FUNCTION public.decrement_stock(pid UUID, qty INTEGER)
 RETURNS void
 LANGUAGE plpgsql
@@ -378,18 +403,18 @@ AS $$
 BEGIN
   INSERT INTO public.search_queries (query, count)
   VALUES (search_query, 1)
-  ON CONFLICT (query) DO UPDATE
+  ON CONFLICT ON CONSTRAINT search_queries_query_unique DO UPDATE
   SET count = public.search_queries.count + 1;
 END;
 $$;
 
+ALTER TABLE IF EXISTS public.search_queries DROP CONSTRAINT IF EXISTS search_queries_query_unique;
 ALTER TABLE public.search_queries ADD CONSTRAINT search_queries_query_unique UNIQUE (query);
 
 -- ============================================
 -- 7. Triggers
 -- ============================================
 
--- Auto-create profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -412,7 +437,6 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_new_user();
 
--- Auto-update updated_at timestamp
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -435,7 +459,6 @@ CREATE TRIGGER set_orders_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION public.set_updated_at();
 
--- Auto-calculate orders.total_amount
 CREATE OR REPLACE FUNCTION public.calculate_order_total()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -459,20 +482,16 @@ CREATE TRIGGER on_order_item_inserted
   FOR EACH ROW
   EXECUTE FUNCTION public.calculate_order_total();
 
-COMMIT;
-
 -- ============================================
--- 8. Create Admin Account & Seed Data
+-- 8. Create Admin Account
 -- ============================================
 
--- Create admin user with pre-confirmed email (bypasses email verification)
--- Uses pgcrypto to hash the password, then triggers auto-create the profile
 INSERT INTO auth.users (
   instance_id, id, aud, role,
   email, encrypted_password, email_confirmed_at,
   raw_user_meta_data, created_at, updated_at
 )
-VALUES (
+SELECT
   '00000000-0000-0000-0000-000000000000',
   gen_random_uuid(),
   'authenticated',
@@ -483,10 +502,8 @@ VALUES (
   jsonb_build_object('full_name', 'مدير المتجر'),
   now(),
   now()
-)
-ON CONFLICT (email) DO NOTHING;
+WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'abnbwh@gmail.com');
 
--- Promote to super_admin (profile auto-created by handle_new_user trigger)
 UPDATE public.profiles
 SET role = 'super_admin'
 WHERE email = 'abnbwh@gmail.com';
@@ -495,33 +512,33 @@ WHERE email = 'abnbwh@gmail.com';
 -- 9. Sample Data
 -- ============================================
 
--- Categories
+-- Categories (proper hex UUIDs)
 INSERT INTO public.categories (id, name, name_ar, slug, image_url) VALUES
-  ('c0000001-0000-0000-0000-000000000001', 'Smartphones', 'الهواتف الذكية', 'smartphones', 'https://picsum.photos/seed/cat1/400/400'),
-  ('c0000001-0000-0000-0000-000000000002', 'Laptops', 'أجهزة الكمبيوتر المحمولة', 'laptops', 'https://picsum.photos/seed/cat2/400/400'),
-  ('c0000001-0000-0000-0000-000000000003', 'Headphones', 'سماعات الرأس', 'headphones', 'https://picsum.photos/seed/cat3/400/400'),
-  ('c0000001-0000-0000-0000-000000000004', 'Accessories', 'الإكسسوارات', 'accessories', 'https://picsum.photos/seed/cat4/400/400'),
-  ('c0000001-0000-0000-0000-000000000005', 'Smart Watches', 'الساعات الذكية', 'smart-watches', 'https://picsum.photos/seed/cat5/400/400'),
-  ('c0000001-0000-0000-0000-000000000006', 'Tablets', 'الأجهزة اللوحية', 'tablets', 'https://picsum.photos/seed/cat6/400/400')
+  ('00000001-0000-0000-0000-000000000001', 'Smartphones', 'الهواتف الذكية', 'smartphones', 'https://picsum.photos/seed/cat1/400/400'),
+  ('00000002-0000-0000-0000-000000000002', 'Laptops', 'أجهزة الكمبيوتر المحمولة', 'laptops', 'https://picsum.photos/seed/cat2/400/400'),
+  ('00000003-0000-0000-0000-000000000003', 'Headphones', 'سماعات الرأس', 'headphones', 'https://picsum.photos/seed/cat3/400/400'),
+  ('00000004-0000-0000-0000-000000000004', 'Accessories', 'الإكسسوارات', 'accessories', 'https://picsum.photos/seed/cat4/400/400'),
+  ('00000005-0000-0000-0000-000000000005', 'Smart Watches', 'الساعات الذكية', 'smart-watches', 'https://picsum.photos/seed/cat5/400/400'),
+  ('00000006-0000-0000-0000-000000000006', 'Tablets', 'الأجهزة اللوحية', 'tablets', 'https://picsum.photos/seed/cat6/400/400')
 ON CONFLICT (slug) DO NOTHING;
 
--- Products
+-- Products (proper hex UUIDs, category IDs must match above)
 INSERT INTO public.products (id, title, description, price, original_price, image_url, category_id, featured, flash_sale, flash_sale_price, stock, rating, reviews_count) VALUES
-  ('p0000001-0000-0000-0000-000000000001', 'Samsung Galaxy S24 Ultra', 'أحدث هاتف ذكي من سامسونج مع كاميرا 200 ميجابكسل', 4299, 4999, 'https://picsum.photos/seed/prod1/600/600', 'c0000001-0000-0000-0000-000000000001', true, true, 3899, 15, 4.8, 124),
-  ('p0000001-0000-0000-0000-000000000002', 'iPhone 15 Pro Max', 'هاتف أبل الأحدث مع شريحة A17 Pro', 4899, 5499, 'https://picsum.photos/seed/prod2/600/600', 'c0000001-0000-0000-0000-000000000001', true, false, NULL, 10, 4.9, 256),
-  ('p0000001-0000-0000-0000-000000000003', 'MacBook Pro M3', 'لاب توب أبل برو مع شريحة M3 مقاس 16 إنش', 8499, 9499, 'https://picsum.photos/seed/prod3/600/600', 'c0000001-0000-0000-0000-000000000002', true, false, NULL, 5, 4.7, 89),
-  ('p0000001-0000-0000-0000-000000000004', 'Sony WH-1000XM5', 'سماعات رأس لاسلكية مانعة للضوضاء', 1299, 1599, 'https://picsum.photos/seed/prod4/600/600', 'c0000001-0000-0000-0000-000000000003', true, true, 1099, 25, 4.6, 312),
-  ('p0000001-0000-0000-0000-000000000005', 'Apple Watch Ultra 2', 'ساعة أبل الرياضية المتطورة', 3299, 3799, 'https://picsum.photos/seed/prod5/600/600', 'c0000001-0000-0000-0000-000000000005', true, false, NULL, 8, 4.5, 67),
-  ('p0000001-0000-0000-0000-000000000006', 'iPad Air M2', 'جهاز أبل اللوحي مع شريحة M2', 2799, 3299, 'https://picsum.photos/seed/prod6/600/600', 'c0000001-0000-0000-0000-000000000006', false, true, 2499, 12, 4.4, 45),
-  ('p0000001-0000-0000-0000-000000000007', 'Xiaomi Power Bank 20000mAh', 'بطارية متنقلة بسعة 20000 ميللي أمبير', 159, 199, 'https://picsum.photos/seed/prod7/600/600', 'c0000001-0000-0000-0000-000000000004', false, false, NULL, 100, 4.3, 523),
-  ('p0000001-0000-0000-0000-000000000008', 'Galaxy Buds2 Pro', 'سماعات أذن لاسلكية من سامسونج', 699, 849, 'https://picsum.photos/seed/prod8/600/600', 'c0000001-0000-0000-0000-000000000004', true, true, 599, 30, 4.4, 198)
+  ('00000001-0000-0001-0000-000000000001', 'Samsung Galaxy S24 Ultra', 'أحدث هاتف ذكي من سامسونج مع كاميرا 200 ميجابكسل', 4299, 4999, 'https://picsum.photos/seed/prod1/600/600', '00000001-0000-0000-0000-000000000001', true, true, 3899, 15, 4.8, 124),
+  ('00000002-0000-0001-0000-000000000002', 'iPhone 15 Pro Max', 'هاتف أبل الأحدث مع شريحة A17 Pro', 4899, 5499, 'https://picsum.photos/seed/prod2/600/600', '00000001-0000-0000-0000-000000000001', true, false, NULL, 10, 4.9, 256),
+  ('00000003-0000-0001-0000-000000000003', 'MacBook Pro M3', 'لاب توب أبل برو مع شريحة M3 مقاس 16 إنش', 8499, 9499, 'https://picsum.photos/seed/prod3/600/600', '00000002-0000-0000-0000-000000000002', true, false, NULL, 5, 4.7, 89),
+  ('00000004-0000-0001-0000-000000000004', 'Sony WH-1000XM5', 'سماعات رأس لاسلكية مانعة للضوضاء', 1299, 1599, 'https://picsum.photos/seed/prod4/600/600', '00000003-0000-0000-0000-000000000003', true, true, 1099, 25, 4.6, 312),
+  ('00000005-0000-0001-0000-000000000005', 'Apple Watch Ultra 2', 'ساعة أبل الرياضية المتطورة', 3299, 3799, 'https://picsum.photos/seed/prod5/600/600', '00000005-0000-0000-0000-000000000005', true, false, NULL, 8, 4.5, 67),
+  ('00000006-0000-0001-0000-000000000006', 'iPad Air M2', 'جهاز أبل اللوحي مع شريحة M2', 2799, 3299, 'https://picsum.photos/seed/prod6/600/600', '00000006-0000-0000-0000-000000000006', false, true, 2499, 12, 4.4, 45),
+  ('00000007-0000-0001-0000-000000000007', 'Xiaomi Power Bank 20000mAh', 'بطارية متنقلة بسعة 20000 ميللي أمبير', 159, 199, 'https://picsum.photos/seed/prod7/600/600', '00000004-0000-0000-0000-000000000004', false, false, NULL, 100, 4.3, 523),
+  ('00000008-0000-0001-0000-000000000008', 'Galaxy Buds2 Pro', 'سماعات أذن لاسلكية من سامسونج', 699, 849, 'https://picsum.photos/seed/prod8/600/600', '00000004-0000-0000-0000-000000000004', true, true, 599, 30, 4.4, 198)
 ON CONFLICT (id) DO NOTHING;
 
 -- Product Images
 INSERT INTO public.product_images (product_id, url, sort_order) VALUES
-  ('p0000001-0000-0000-0000-000000000001', 'https://picsum.photos/seed/prod1a/600/600', 1),
-  ('p0000001-0000-0000-0000-000000000001', 'https://picsum.photos/seed/prod1b/600/600', 2),
-  ('p0000001-0000-0000-0000-000000000001', 'https://picsum.photos/seed/prod1c/600/600', 3);
+  ('00000001-0000-0001-0000-000000000001', 'https://picsum.photos/seed/prod1a/600/600', 1),
+  ('00000001-0000-0001-0000-000000000001', 'https://picsum.photos/seed/prod1b/600/600', 2),
+  ('00000001-0000-0001-0000-000000000001', 'https://picsum.photos/seed/prod1c/600/600', 3);
 
 -- Banners
 INSERT INTO public.banners (image_url, link_url, sort_order, active) VALUES
@@ -529,13 +546,13 @@ INSERT INTO public.banners (image_url, link_url, sort_order, active) VALUES
   ('https://picsum.photos/seed/banner2/1200/400', NULL, 2, true),
   ('https://picsum.photos/seed/banner3/1200/400', NULL, 3, true);
 
--- Cities
+-- Cities (proper hex UUIDs)
 INSERT INTO public.cities (id, name, name_ar, shipping_fee, delivery_days, active) VALUES
-  ('city0001-0000-0000-0000-000000000001', 'Riyadh', 'الرياض', 30, 2, true),
-  ('city0001-0000-0000-0000-000000000002', 'Jeddah', 'جدة', 40, 3, true),
-  ('city0001-0000-0000-0000-000000000003', 'Dammam', 'الدمام', 35, 3, true),
-  ('city0001-0000-0000-0000-000000000004', 'Mecca', 'مكة المكرمة', 45, 3, true),
-  ('city0001-0000-0000-0000-000000000005', 'Medina', 'المدينة المنورة', 40, 3, true)
+  ('00000001-0000-0002-0000-000000000001', 'Riyadh', 'الرياض', 30, 2, true),
+  ('00000002-0000-0002-0000-000000000002', 'Jeddah', 'جدة', 40, 3, true),
+  ('00000003-0000-0002-0000-000000000003', 'Dammam', 'الدمام', 35, 3, true),
+  ('00000004-0000-0002-0000-000000000004', 'Mecca', 'مكة المكرمة', 45, 3, true),
+  ('00000005-0000-0002-0000-000000000005', 'Medina', 'المدينة المنورة', 40, 3, true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Coupons

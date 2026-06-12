@@ -87,6 +87,7 @@ export default function HomeScreen({ navigation }: any) {
         return;
       }
     } catch {
+      // banners from DB unavailable, use fallback
     }
     if (featured.products.length > 0) {
       setBanners(
