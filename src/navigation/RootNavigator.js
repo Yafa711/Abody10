@@ -4,11 +4,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import { useAuth } from '../contexts/AuthContext';
 import AppNavigator from './AppNavigator';
-
-const LoadingScreen = React.lazy(() => import('../screens/LoadingScreen'));
-const LoginScreen = React.lazy(() => import('../screens/auth/LoginScreen'));
-const RegisterScreen = React.lazy(() => import('../screens/auth/RegisterScreen'));
-const ForgotPasswordScreen = React.lazy(() => import('../screens/auth/ForgotPasswordScreen'));
+import LoadingScreen from '../screens/LoadingScreen';
+import LoginScreen from '../screens/auth/LoginScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 
 const Stack = createStackNavigator();
 
