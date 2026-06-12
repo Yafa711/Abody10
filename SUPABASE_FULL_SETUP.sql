@@ -465,17 +465,28 @@ COMMIT;
 -- 8. Create Admin Account & Seed Data
 -- ============================================
 
--- Create admin user (email_confirm: true bypasses email confirmation)
-SELECT supabase_auth.create_user(
-  '{
-    "email": "abnbwh@gmail.com",
-    "password": "Abod#7822",
-    "email_confirm": true,
-    "user_metadata": {"full_name": "مدير المتجر"}
-  }'::jsonb
-);
+-- Create admin user with pre-confirmed email (bypasses email verification)
+-- Uses pgcrypto to hash the password, then triggers auto-create the profile
+INSERT INTO auth.users (
+  instance_id, id, aud, role,
+  email, encrypted_password, email_confirmed_at,
+  raw_user_meta_data, created_at, updated_at
+)
+VALUES (
+  '00000000-0000-0000-0000-000000000000',
+  gen_random_uuid(),
+  'authenticated',
+  'authenticated',
+  'abnbwh@gmail.com',
+  crypt('Abod#7822', gen_salt('bf')),
+  now(),
+  jsonb_build_object('full_name', 'مدير المتجر'),
+  now(),
+  now()
+)
+ON CONFLICT (email) DO NOTHING;
 
--- Promote to super_admin
+-- Promote to super_admin (profile auto-created by handle_new_user trigger)
 UPDATE public.profiles
 SET role = 'super_admin'
 WHERE email = 'abnbwh@gmail.com';
