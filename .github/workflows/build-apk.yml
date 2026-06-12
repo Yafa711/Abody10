@@ -43,8 +43,14 @@ jobs:
 
       - name: Bundle JS for Android
         run: |
-          npx react-native bundle --platform android --dev false --entry-file index.ts --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/ --config metro.config.js 2>/dev/null || \
-          npx react-native bundle --platform android --dev false --entry-file index.ts --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle --platform android --dev false --entry-file index.ts --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/ 2>&1
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://rjcqkwgjqeqwzfbedwav.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_1Uz2U4l6oUH67i7sjTyr0g_rwqRFPIO
+
+      - name: Verify bundle
+        run: ls -lh android/app/src/main/assets/index.android.bundle
         env:
           EXPO_PUBLIC_SUPABASE_URL: https://rjcqkwgjqeqwzfbedwav.supabase.co
           EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_1Uz2U4l6oUH67i7sjTyr0g_rwqRFPIO
