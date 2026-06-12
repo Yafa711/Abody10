@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ViewStyle, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -17,6 +18,8 @@ interface GlassCardProps {
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
+const tintMap = { light: 'light' as const, medium: 'light' as const, heavy: 'dark' as const };
+
 export default function GlassCard({
   children,
   style,
@@ -27,8 +30,6 @@ export default function GlassCard({
   const { colors, radius } = useTheme();
   const scale = useSharedValue(1);
 
-  const opacityMap = { light: 0.05, medium: 0.1, heavy: 0.15 };
-
   const handlePressIn = () => { scale.value = withSpring(0.97, { damping: 15, stiffness: 200 }); };
   const handlePressOut = () => { scale.value = withSpring(1, { damping: 15, stiffness: 200 }); };
 
@@ -36,20 +37,64 @@ export default function GlassCard({
     transform: [{ scale: scale.value }],
   }));
 
-  const content = (
+  const blurIntensity = { light: 20, medium: 40, heavy: 60 }[intensity];
+  const baseStyle = {
+    overflow: 'hidden' as const,
+    borderRadius: radius.lg,
+  };
+
+  const glowStyle = glowColor ? {
+    shadowColor: glowColor,
+    shadowOffset: { width: 0, height: 0 } as any,
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 12,
+  } : null;
+
+  const childrenWithGlow = glowColor ? (
     <>
+      {children}
+      <View
+        style={{
+          position: 'absolute',
+          top: -40,
+          right: -40,
+          width: 120,
+          height: 120,
+          borderRadius: 60,
+          backgroundColor: glowColor,
+          opacity: 0.08,
+        }}
+      />
+    </>
+  ) : children;
+
+  const inner = (
+    <BlurView
+      intensity={blurIntensity}
+      tint={tintMap[intensity]}
+      style={[
+        baseStyle,
+        {
+          borderWidth: 1,
+          borderColor: Platform.OS === 'ios' ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)',
+        },
+        glowStyle,
+        style,
+      ]}
+    >
       <View
         style={[
           StyleSheet.absoluteFill,
           {
             borderRadius: radius.lg,
             backgroundColor: colors.primary,
-            opacity: opacityMap[intensity],
+            opacity: { light: 0.03, medium: 0.06, heavy: 0.1 }[intensity],
           },
         ]}
       />
-      {children}
-    </>
+      {childrenWithGlow}
+    </BlurView>
   );
 
   if (onPress) {
@@ -59,53 +104,12 @@ export default function GlassCard({
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={[
-          {
-            position: 'relative',
-            overflow: 'hidden',
-            borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.3)',
-            backgroundColor: 'rgba(255,255,255,0.7)',
-            borderRadius: radius.lg,
-          },
-          glowColor ? {
-            shadowColor: glowColor,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.3,
-            shadowRadius: 20,
-            elevation: 10,
-          } : null,
-          animStyle,
-          style,
-        ]}
+        style={[baseStyle, animStyle]}
       >
-        {content}
+        {inner}
       </AnimatedTouchable>
     );
   }
 
-  return (
-    <View
-      style={[
-        {
-          position: 'relative',
-          overflow: 'hidden',
-          borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.3)',
-          backgroundColor: 'rgba(255,255,255,0.7)',
-          borderRadius: radius.lg,
-        },
-        glowColor ? {
-          shadowColor: glowColor,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.3,
-          shadowRadius: 20,
-          elevation: 10,
-        } : null,
-        style,
-      ]}
-    >
-      {content}
-    </View>
-  );
+  return inner;
 }

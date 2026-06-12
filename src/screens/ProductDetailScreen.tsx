@@ -7,6 +7,11 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
 import { useProduct, useFavorites } from '../hooks';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,12 +28,52 @@ import { recommendationService } from '../services/recommendationService';
 import { hapticService } from '../services/hapticService';
 import { Product } from '../types/product';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function ProductDetailScreen({ navigation, route }: any) {
   const { colors, spacing, radius, typography } = useTheme();
   const { user } = useAuth();
   const productId: string | undefined = route.params?.id;
+  const layoutX = route.params?.layoutX;
+  const layoutY = route.params?.layoutY;
+  const layoutW = route.params?.layoutW;
+  const layoutH = route.params?.layoutH;
+
+  const imageScale = useSharedValue(layoutW ? layoutW / SCREEN_WIDTH : 1);
+  const imageTranslateX = useSharedValue(layoutX ?? 0);
+  const imageTranslateY = useSharedValue(layoutY ?? 0);
+  const imageOpacity = useSharedValue(layoutW ? 0 : 1);
+  const imageHeight = useSharedValue(layoutH ?? SCREEN_HEIGHT * 0.4);
+  const contentOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (layoutW) {
+      imageScale.value = withSpring(1, { damping: 18, stiffness: 120 });
+      imageTranslateX.value = withSpring(0, { damping: 18, stiffness: 120 });
+      imageTranslateY.value = withSpring(0, { damping: 18, stiffness: 120 });
+      imageOpacity.value = withSpring(1, { damping: 14, stiffness: 100 });
+    }
+    setTimeout(() => {
+      contentOpacity.value = withSpring(1, { damping: 16, stiffness: 120 });
+    }, 200);
+  }, []);
+
+  const imageAnimStyle = useAnimatedStyle(() => {
+    const h = imageHeight.value;
+    return {
+      height: h,
+      transform: [
+        { scale: imageScale.value },
+        { translateX: imageTranslateX.value },
+        { translateY: imageTranslateY.value },
+      ],
+      opacity: imageOpacity.value,
+    };
+  });
+
+  const contentAnimStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+  }));
 
   const { product, loading, error } = useProduct(productId);
   const favorites = useFavorites(user?.id);
@@ -123,11 +168,13 @@ export default function ProductDetailScreen({ navigation, route }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Image Gallery */}
-        <ImageGallery images={images} />
+        {/* Image Gallery with layoutId-like entrance */}
+        <Animated.View style={imageAnimStyle}>
+          <ImageGallery images={images} />
+        </Animated.View>
 
         {/* Product Info */}
-        <View style={{ padding: spacing.lg }}>
+        <Animated.View style={[{ padding: spacing.lg }, contentAnimStyle]}>
           <Text
             style={{
               fontSize: typography.fontSize.headlineSmall,
@@ -368,7 +415,7 @@ export default function ProductDetailScreen({ navigation, route }: any) {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (

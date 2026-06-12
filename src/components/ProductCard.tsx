@@ -16,6 +16,8 @@ interface ProductCardProps {
   isFavorited?: boolean;
   horizontal?: boolean;
   index?: number;
+  cardRef?: React.RefObject<View>;
+  onLayout?: (event: any) => void;
 }
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -27,6 +29,8 @@ export default function ProductCard({
   isFavorited = false,
   horizontal = false,
   index = 0,
+  cardRef,
+  onLayout,
 }: ProductCardProps) {
   const { colors, spacing, radius, typography } = useTheme();
   const scale = useSharedValue(1);
@@ -70,6 +74,8 @@ export default function ProductCard({
   if (horizontal) {
     return (
       <AnimatedTouchable
+        ref={cardRef}
+        onLayout={onLayout}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -174,6 +180,8 @@ export default function ProductCard({
 
   return (
     <AnimatedTouchable
+      ref={cardRef}
+      onLayout={onLayout}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}

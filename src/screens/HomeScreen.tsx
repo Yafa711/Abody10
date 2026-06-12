@@ -11,6 +11,9 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  useAnimatedScrollHandler,
+  interpolate,
+  Extrapolation,
 } from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
 import { useProducts, useCategories, useFavorites } from '../hooks';
@@ -21,8 +24,12 @@ import {
   ProductCard,
   SectionHeader,
   HomePageSkeleton,
+  GlassCard,
 } from '../components';
 import { supabase } from '../services/supabase';
+import { fluid } from '../utils/fluidTypography';
+
+const CATEGORY_COLLAPSE_THRESHOLD = 4;
 
 interface BannerItem {
   id: string;
@@ -65,16 +72,40 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 export default function HomeScreen({ navigation }: any) {
-  const { colors, spacing, typography, radius } = useTheme();
+  const { colors, spacing } = useTheme();
   const { user } = useAuth();
 
   const [refreshing, setRefreshing] = useState(false);
   const [banners, setBanners] = useState<BannerItem[]>([]);
+  const [categoriesExpanded, setCategoriesExpanded] = useState(false);
 
   const featured = useProducts({ featured: true, limit: 10 });
   const flashSales = useProducts({ flash_sale: true, limit: 10 });
   const allCategories = useCategories(true);
   const favorites = useFavorites(user?.id);
+
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (e) => { scrollY.value = e.contentOffset.y; },
+  });
+
+  const heroParallaxStyle = useAnimatedStyle(() => {
+    const translateY = interpolate(
+      scrollY.value,
+      [0, 220],
+      [0, -60],
+      Extrapolation.CLAMP,
+    );
+    const scale = interpolate(
+      scrollY.value,
+      [0, 220],
+      [1, 0.92],
+      Extrapolation.CLAMP,
+    );
+    return {
+      transform: [{ translateY }, { scale }],
+    };
+  });
 
   const fetchBanners = useCallback(async () => {
     try {
@@ -124,9 +155,17 @@ export default function HomeScreen({ navigation }: any) {
     );
   }
 
+  const categories = allCategories.categories;
+  const visibleCategories = categoriesExpanded
+    ? categories
+    : categories.slice(0, CATEGORY_COLLAPSE_THRESHOLD);
+  const hasMoreCategories = categories.length > CATEGORY_COLLAPSE_THRESHOLD;
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -144,15 +183,17 @@ export default function HomeScreen({ navigation }: any) {
           )}
         </AnimatedSection>
 
-        {/* Hero Banner */}
-        <AnimatedSection delay={150}>
-          <HeroBanner
-            items={banners}
-            onPress={(item) => navigation.navigate('ProductDetails', { id: item.id })}
-          />
-        </AnimatedSection>
+        {/* Hero Banner with scroll parallax */}
+        <Animated.View style={heroParallaxStyle}>
+          <AnimatedSection delay={150}>
+            <HeroBanner
+              items={banners}
+              onPress={(item) => navigation.navigate('ProductDetails', { id: item.id })}
+            />
+          </AnimatedSection>
+        </Animated.View>
 
-        {/* Categories - Bento Grid */}
+        {/* Categories - Bento Grid with Contextual UI */}
         <AnimatedSection delay={300} style={{ marginTop: spacing.xs }}>
           <SectionHeader
             title="الأقسام"
@@ -167,57 +208,87 @@ export default function HomeScreen({ navigation }: any) {
               gap: 10,
             }}
           >
-            {allCategories.categories.slice(0, 6).map((cat, index) => {
+            {visibleCategories.map((cat, index) => {
               const iconName = CATEGORY_ICONS[cat.slug] || 'grid-outline';
               const isLarge = index === 0;
               return (
-                <TouchableOpacity
-                  key={cat.id}
-                  activeOpacity={0.8}
-                  onPress={() =>
-                    navigation.navigate('ProductList', {
-                      title: cat.name,
-                      categoryId: cat.id,
-                    })
-                  }
-                  style={{
-                    width: isLarge ? '100%' : '48%',
-                    height: isLarge ? 80 : 72,
-                    borderRadius: radius.lg,
-                    backgroundColor: colors.primaryLight,
-                    flexDirection: isLarge ? 'row' : 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingHorizontal: spacing.lg,
-                  }}
-                >
-                  <View
+                <AnimatedSection key={cat.id} delay={350 + index * 30}>
+                  <GlassCard
+                    glowColor={isLarge ? colors.primary : undefined}
+                    onPress={() =>
+                      navigation.navigate('ProductList', {
+                        title: cat.name,
+                        categoryId: cat.id,
+                      })
+                    }
+                    intensity="light"
                     style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 12,
-                      backgroundColor: colors.primary,
-                      justifyContent: 'center',
+                      width: isLarge ? '100%' : '48%',
+                      height: isLarge ? 84 : 76,
+                      flexDirection: isLarge ? 'row' as any : 'column' as any,
                       alignItems: 'center',
-                      marginBottom: isLarge ? 0 : spacing.xs,
-                      marginRight: isLarge ? spacing.md : 0,
+                      justifyContent: 'center',
+                      paddingHorizontal: spacing.lg,
                     }}
                   >
-                    <Ionicons name={iconName as any} size={20} color="#FFFFFF" />
-                  </View>
-                  <Text
-                    style={{
-                      fontSize: isLarge ? typography.fontSize.titleMedium : typography.fontSize.bodySmall,
-                      fontWeight: '600',
-                      color: colors.textPrimary,
-                    }}
-                  >
-                    {cat.name_ar || cat.name}
-                  </Text>
-                </TouchableOpacity>
+                    <View
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 12,
+                        backgroundColor: colors.primary,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginBottom: isLarge ? 0 : spacing.xs,
+                        marginRight: isLarge ? spacing.md : 0,
+                      }}
+                    >
+                      <Ionicons name={iconName as any} size={20} color="#FFFFFF" />
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: isLarge ? fluid.lg : fluid.sm,
+                        fontWeight: '600',
+                        color: colors.textPrimary,
+                      }}
+                    >
+                      {cat.name_ar || cat.name}
+                    </Text>
+                  </GlassCard>
+                </AnimatedSection>
               );
             })}
           </View>
+          {/* Contextual UI: Show more/less toggle */}
+          {hasMoreCategories && (
+            <TouchableOpacity
+              onPress={() => setCategoriesExpanded(!categoriesExpanded)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: spacing.md,
+                marginTop: spacing.xs,
+              }}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={{
+                  fontSize: fluid.sm,
+                  color: colors.primary,
+                  fontWeight: '600',
+                }}
+              >
+                {categoriesExpanded ? 'عرض أقل' : `عرض الكل (${categories.length})`}
+              </Text>
+              <Ionicons
+                name={categoriesExpanded ? 'chevron-up-outline' : 'chevron-down-outline'}
+                size={16}
+                color={colors.primary}
+                style={{ marginLeft: 4 }}
+              />
+            </TouchableOpacity>
+          )}
         </AnimatedSection>
 
         {/* Flash Sales */}
@@ -273,7 +344,7 @@ export default function HomeScreen({ navigation }: any) {
             ))}
           </ScrollView>
         </AnimatedSection>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }
