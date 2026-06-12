@@ -43,9 +43,15 @@ jobs:
 
       - name: Patch Android settings.gradle for CI compatibility
         run: |
-          # Remove foojay-resolver-convention plugin which fails with gson 2.9.1 (403 from Maven Central)
           sed -i '/foojay-resolver-convention/d' android/settings.gradle
           echo "Patched settings.gradle after prebuild"
+
+      - name: Pre-install NDK
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager --install "ndk;25.1.8937393" 2>&1 || \
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.1.8937393" 2>&1
+          echo "NDK install done"
+          ls $ANDROID_HOME/ndk/ 2>/dev/null || echo "No NDK installed"
 
       - name: Bundle JS for Android
         run: |
