@@ -86,20 +86,25 @@ export default function AppNavigator() {
   const badgeCount = itemCount || 0;
 
   const tabBarStyle = {
-    backgroundColor: '#141414',
-    borderTopColor: '#2C2C2C',
+    backgroundColor: '#FFFFFF',
+    borderTopColor: '#E5E7EB',
     borderTopWidth: 1,
     height: 60,
     paddingBottom: 8,
     paddingTop: 8,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
   };
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#D4A853',
-        tabBarInactiveTintColor: '#B0B0B0',
+        tabBarActiveTintColor: '#6D28D9',
+        tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: route.name === 'AdminTab' ? { ...tabBarStyle, display: isAdmin ? 'flex' : 'none' } : tabBarStyle,
         tabBarLabelStyle: {
           fontSize: 11,

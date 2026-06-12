@@ -1,5 +1,6 @@
 import React, { Suspense, useEffect, useCallback, useRef } from 'react';
 import { Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './src/navigation/RootNavigator';
@@ -80,11 +81,11 @@ export default function App() {
               <ImagePrefetcher>
                 <NotificationInitializer>
                   <CartProvider>
-                    <Suspense fallback={<View style={{ flex: 1, backgroundColor: '#0D0D0D', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#D4A853' }}>Loading...</Text></View>}>
+                    <Suspense fallback={<View style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}><View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: '#EDE9FE', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}><Ionicons name="flash" size={24} color="#6D28D9" /></View><Text style={{ color: '#6D28D9', fontSize: 16, fontWeight: '600' }}>جاري التحميل...</Text></View>}>
                       <RootNavigator />
                       <StatusBar
-                          backgroundColor="#0D0D0D"
-                          style="light"
+                          backgroundColor="#FFFFFF"
+                          style="dark"
                         />
                     </Suspense>
                   </CartProvider>

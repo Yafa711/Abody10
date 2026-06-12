@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../themes/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../../components/ui/Button';
@@ -40,7 +41,18 @@ export default function LoginScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={{ alignItems: 'center', marginBottom: spacing.xxxxl }}>
-          <Text style={{ fontSize: 36, fontWeight: '700', color: colors.primary, letterSpacing: 1 }}>
+          <View style={{
+            width: 80,
+            height: 80,
+            borderRadius: 20,
+            backgroundColor: colors.primaryLight,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: spacing.lg,
+          }}>
+            <Ionicons name="flash" size={36} color={colors.primary} />
+          </View>
+          <Text style={{ fontSize: 36, fontWeight: '700', color: colors.textPrimary, letterSpacing: 1 }}>
             متجر الإلكترو
           </Text>
           <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: spacing.sm }}>

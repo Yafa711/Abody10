@@ -12,6 +12,7 @@ import { useProducts, useCategories, useFavorites } from '../hooks';
 import { useAuth } from '../contexts/AuthContext';
 import {
   HeroBanner,
+  RollingProductBanner,
   ProductCard,
   ProductCardSkeleton,
   SectionHeader,
@@ -96,6 +97,11 @@ export default function HomeScreen({ navigation }: any) {
           />
         }
       >
+        {/* Rolling Product Banner */}
+        {!loading && featured.products.length > 0 && (
+          <RollingProductBanner products={featured.products} />
+        )}
+
         {/* Hero Banner */}
         {loading ? (
           <View style={{ height: 200, backgroundColor: colors.surface }} />
@@ -143,19 +149,17 @@ export default function HomeScreen({ navigation }: any) {
                   style={{ alignItems: 'center', marginRight: spacing.lg }}
                 >
                   <View
-                    style={{
-                      width: 72,
-                      height: 72,
-                      borderRadius: 36,
-                      backgroundColor: colors.surfaceVariant,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                    }}
-                  >
-                    <Ionicons name="grid-outline" size={28} color={colors.primary} />
-                  </View>
+                      style={{
+                        width: 72,
+                        height: 72,
+                        borderRadius: 20,
+                        backgroundColor: colors.primaryLight,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Ionicons name="grid-outline" size={28} color={colors.primary} />
+                    </View>
                   <Text
                     numberOfLines={1}
                     style={{
@@ -187,11 +191,12 @@ export default function HomeScreen({ navigation }: any) {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingLeft: spacing.lg }}
             >
-              {flashSales.products.map((product) => (
+              {flashSales.products.map((product, index) => (
                 <ProductCard
                   key={product.id}
                   product={product}
                   horizontal
+                  index={index}
                   onPress={() => navigation.navigate('ProductDetails', { id: product.id })}
                   onFavorite={user ? () => favorites.toggle(product.id) : undefined}
                   isFavorited={favorites.isFavorited(product.id)}
@@ -216,11 +221,12 @@ export default function HomeScreen({ navigation }: any) {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingLeft: spacing.lg }}
             >
-              {featured.products.map((product) => (
+              {featured.products.map((product, index) => (
                 <ProductCard
                   key={product.id}
                   product={product}
                   horizontal
+                  index={index}
                   onPress={() => navigation.navigate('ProductDetails', { id: product.id })}
                   onFavorite={user ? () => favorites.toggle(product.id) : undefined}
                   isFavorited={favorites.isFavorited(product.id)}

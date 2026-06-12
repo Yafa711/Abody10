@@ -45,17 +45,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
 function ErrorFallback({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#0D0D0D', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-      <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
-      <Text style={{ fontSize: 20, fontWeight: '600', color: '#FFFFFF', marginBottom: 8, textAlign: 'center' }}>
+    <View style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+      <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#FEE2E2', justifyContent: 'center', alignItems: 'center', marginBottom: 20 }}>
+        <Text style={{ fontSize: 28 }}>⚡</Text>
+      </View>
+      <Text style={{ fontSize: 20, fontWeight: '600', color: '#111827', marginBottom: 8, textAlign: 'center' }}>
         حدث خطأ غير متوقع
       </Text>
-      <Text style={{ fontSize: 14, color: '#B0B0B0', textAlign: 'center', marginBottom: 24, paddingHorizontal: 24 }}>
+      <Text style={{ fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 24, paddingHorizontal: 24 }}>
         {error?.message || 'نأسف للإزعاج، يرجى المحاولة مرة أخرى'}
       </Text>
       <TouchableOpacity
         onPress={onRetry}
-        style={{ backgroundColor: '#D4A853', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 8 }}
+        style={{ backgroundColor: '#6D28D9', paddingVertical: 14, paddingHorizontal: 36, borderRadius: 12 }}
       >
         <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>إعادة المحاولة</Text>
       </TouchableOpacity>

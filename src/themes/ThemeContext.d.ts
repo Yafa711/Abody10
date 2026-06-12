@@ -6,8 +6,10 @@ interface ThemeColors {
   surfaceVariant: string;
   primary: string;
   primaryVariant: string;
+  primaryLight: string;
   secondary: string;
   secondaryVariant: string;
+  secondaryLight: string;
   onPrimary: string;
   onSecondary: string;
   onBackground: string;

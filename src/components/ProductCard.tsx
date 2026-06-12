@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
+  Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
 import { Product } from '../types/product';
@@ -15,6 +17,7 @@ interface ProductCardProps {
   onFavorite?: () => void;
   isFavorited?: boolean;
   horizontal?: boolean;
+  index?: number;
 }
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -25,12 +28,34 @@ export default function ProductCard({
   onFavorite,
   isFavorited = false,
   horizontal = false,
+  index = 0,
 }: ProductCardProps) {
   const { colors, spacing, radius, typography } = useTheme();
   const scale = useSharedValue(1);
+  const enterOpacity = useSharedValue(0);
+  const enterTranslateY = useSharedValue(30);
+
+  useEffect(() => {
+    const delay = index * 80;
+    setTimeout(() => {
+      enterOpacity.value = withTiming(1, {
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+      });
+      enterTranslateY.value = withSpring(0, {
+        damping: 20,
+        stiffness: 120,
+      });
+    }, delay);
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
+  }));
+
+  const enterStyle = useAnimatedStyle(() => ({
+    opacity: enterOpacity.value,
+    transform: [{ translateY: enterTranslateY.value }],
   }));
 
   const handlePressIn = () => {
@@ -66,6 +91,7 @@ export default function ProductCard({
             backgroundColor: colors.surface,
           },
           animatedStyle,
+          enterStyle,
         ]}
       >
         <View style={{ position: 'relative' }}>
@@ -169,6 +195,7 @@ export default function ProductCard({
           marginBottom: spacing.md,
         },
         animatedStyle,
+        enterStyle,
       ]}
     >
       <View style={{ position: 'relative' }}>
