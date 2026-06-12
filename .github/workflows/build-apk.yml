@@ -53,6 +53,9 @@ jobs:
           echo "NDK install done"
           ls $ANDROID_HOME/ndk/ 2>/dev/null || echo "No NDK installed"
 
+      - name: Clear Metro cache
+        run: rm -rf /tmp/metro-cache node_modules/.cache/metro $TMPDIR/metro-* 2>/dev/null; echo "Cache cleared"
+
       - name: Bundle JS for Android
         run: |
           mkdir -p android/app/src/main/assets
