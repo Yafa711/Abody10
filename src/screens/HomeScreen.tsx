@@ -7,6 +7,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
 import { useProducts, useCategories, useFavorites } from '../hooks';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,8 +21,8 @@ import {
   HeroBanner,
   RollingProductBanner,
   ProductCard,
-  ProductCardSkeleton,
   SectionHeader,
+  HomePageSkeleton,
 } from '../components';
 import { supabase } from '../services/supabase';
 
@@ -24,8 +31,41 @@ interface BannerItem {
   image_url: string;
 }
 
+function AnimatedSection({ children, delay = 0, style }: {
+  children: React.ReactNode;
+  delay?: number;
+  style?: any;
+}) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(24);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      opacity.value = withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) });
+      translateY.value = withSpring(0, { damping: 20, stiffness: 100 });
+    }, delay);
+    return () => clearTimeout(t);
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return <Animated.View style={[animStyle, style]}>{children}</Animated.View>;
+}
+
+const CATEGORY_ICONS: Record<string, string> = {
+  smartphones: 'phone-portrait-outline',
+  laptops: 'laptop-outline',
+  headphones: 'headset-outline',
+  accessories: 'watch-outline',
+  'smart-watches': 'time-outline',
+  tablets: 'tablet-portrait-outline',
+};
+
 export default function HomeScreen({ navigation }: any) {
-  const { colors, spacing, typography } = useTheme();
+  const { colors, spacing, typography, radius } = useTheme();
   const { user } = useAuth();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -47,7 +87,6 @@ export default function HomeScreen({ navigation }: any) {
         return;
       }
     } catch {
-      // fallback to featured products
     }
     if (featured.products.length > 0) {
       setBanners(
@@ -76,13 +115,13 @@ export default function HomeScreen({ navigation }: any) {
 
   const loading = featured.loading || flashSales.loading || allCategories.loading;
 
-  const renderSkeletons = () => (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: spacing.lg }}>
-      {Array.from({ length: 4 }).map((_, i) => (
-        <ProductCardSkeleton key={i} />
-      ))}
-    </ScrollView>
-  );
+  if (loading && !refreshing) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <HomePageSkeleton />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -98,91 +137,93 @@ export default function HomeScreen({ navigation }: any) {
         }
       >
         {/* Rolling Product Banner */}
-        {!loading && featured.products.length > 0 && (
-          <RollingProductBanner products={featured.products} />
-        )}
+        <AnimatedSection delay={0}>
+          {featured.products.length > 0 && (
+            <RollingProductBanner products={featured.products} />
+          )}
+        </AnimatedSection>
 
         {/* Hero Banner */}
-        {loading ? (
-          <View style={{ height: 200, backgroundColor: colors.surface }} />
-        ) : (
+        <AnimatedSection delay={150}>
           <HeroBanner
             items={banners}
             onPress={(item) => navigation.navigate('ProductDetails', { id: item.id })}
           />
-        )}
+        </AnimatedSection>
 
-        {/* Categories */}
-        <View style={{ marginTop: spacing.xxl }}>
-          <SectionHeader title="الأقسام" actionLabel="عرض الكل" onAction={() => navigation.navigate('ProductList', {})} />
-          {loading ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: spacing.lg }}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <View
-                  key={i}
-                  style={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: 36,
-                    backgroundColor: colors.surfaceVariant,
-                    marginRight: spacing.md,
-                  }}
-                />
-              ))}
-            </ScrollView>
-          ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: spacing.lg }}
-            >
-              {allCategories.categories.map((cat) => (
+        {/* Categories - Bento Grid */}
+        <AnimatedSection delay={300} style={{ marginTop: spacing.xs }}>
+          <SectionHeader
+            title="الأقسام"
+            actionLabel="عرض الكل"
+            onAction={() => navigation.navigate('ProductList', {})}
+          />
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              paddingHorizontal: spacing.lg,
+              gap: 10,
+            }}
+          >
+            {allCategories.categories.slice(0, 6).map((cat, index) => {
+              const iconName = CATEGORY_ICONS[cat.slug] || 'grid-outline';
+              const isLarge = index === 0;
+              return (
                 <TouchableOpacity
                   key={cat.id}
-                  activeOpacity={0.7}
+                  activeOpacity={0.8}
                   onPress={() =>
                     navigation.navigate('ProductList', {
                       title: cat.name,
                       categoryId: cat.id,
                     })
                   }
-                  style={{ alignItems: 'center', marginRight: spacing.lg }}
+                  style={{
+                    width: isLarge ? '100%' : '48%',
+                    height: isLarge ? 80 : 72,
+                    borderRadius: radius.lg,
+                    backgroundColor: colors.primaryLight,
+                    flexDirection: isLarge ? 'row' : 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingHorizontal: spacing.lg,
+                  }}
                 >
                   <View
-                      style={{
-                        width: 72,
-                        height: 72,
-                        borderRadius: 20,
-                        backgroundColor: colors.primaryLight,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Ionicons name="grid-outline" size={28} color={colors.primary} />
-                    </View>
-                  <Text
-                    numberOfLines={1}
                     style={{
-                      fontSize: typography.fontSize.labelMedium,
-                      color: colors.textSecondary,
-                      marginTop: spacing.xs,
-                      textAlign: 'center',
-                      width: 72,
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      backgroundColor: colors.primary,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginBottom: isLarge ? 0 : spacing.xs,
+                      marginRight: isLarge ? spacing.md : 0,
                     }}
                   >
-                    {cat.name}
+                    <Ionicons name={iconName as any} size={20} color="#FFFFFF" />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: isLarge ? typography.fontSize.titleMedium : typography.fontSize.bodySmall,
+                      fontWeight: '600',
+                      color: colors.textPrimary,
+                    }}
+                  >
+                    {cat.name_ar || cat.name}
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-        </View>
+              );
+            })}
+          </View>
+        </AnimatedSection>
 
         {/* Flash Sales */}
-        {!flashSales.loading && flashSales.products.length > 0 && (
-          <View style={{ marginTop: spacing.xxl }}>
+        {flashSales.products.length > 0 && (
+          <AnimatedSection delay={450} style={{ marginTop: spacing.xxl }}>
             <SectionHeader
-              title="تخفيضات سريعة 🔥"
+              title="تخفيضات سريعة"
               actionLabel="عرض الكل"
               onAction={() => navigation.navigate('ProductList', { title: 'تخفيضات سريعة' })}
             />
@@ -203,38 +244,34 @@ export default function HomeScreen({ navigation }: any) {
                 />
               ))}
             </ScrollView>
-          </View>
+          </AnimatedSection>
         )}
 
         {/* Featured Products */}
-        <View style={{ marginTop: spacing.xxl, marginBottom: spacing.xxxl }}>
+        <AnimatedSection delay={600} style={{ marginTop: spacing.xxl, marginBottom: spacing.xxxl }}>
           <SectionHeader
             title="المنتجات المميزة"
             actionLabel="عرض الكل"
             onAction={() => navigation.navigate('ProductList', { title: 'المنتجات المميزة' })}
           />
-          {featured.loading ? (
-            renderSkeletons()
-          ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingLeft: spacing.lg }}
-            >
-              {featured.products.map((product, index) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  horizontal
-                  index={index}
-                  onPress={() => navigation.navigate('ProductDetails', { id: product.id })}
-                  onFavorite={user ? () => favorites.toggle(product.id) : undefined}
-                  isFavorited={favorites.isFavorited(product.id)}
-                />
-              ))}
-            </ScrollView>
-          )}
-        </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingLeft: spacing.lg }}
+          >
+            {featured.products.map((product, index) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                horizontal
+                index={index}
+                onPress={() => navigation.navigate('ProductDetails', { id: product.id })}
+                onFavorite={user ? () => favorites.toggle(product.id) : undefined}
+                isFavorited={favorites.isFavorited(product.id)}
+              />
+            ))}
+          </ScrollView>
+        </AnimatedSection>
       </ScrollView>
     </View>
   );
