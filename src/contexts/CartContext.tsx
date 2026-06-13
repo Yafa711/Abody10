@@ -38,7 +38,7 @@ interface CartContextType {
   loadCities: () => Promise<void>;
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+export const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function useCart(): CartContextType {
   const context = useContext(CartContext);
