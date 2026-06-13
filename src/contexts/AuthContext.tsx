@@ -28,16 +28,31 @@ export function useAuth(): AuthContextType {
   return context;
 }
 
-async function fetchProfile(userId: string): Promise<Profile | null> {
+async function ensureProfile(user: User): Promise<Profile> {
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', userId)
+    .eq('id', user.id)
     .single();
-  if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching profile:', error);
+
+  if (data) return data as Profile;
+
+  // Profile missing (DB was reset). Create it.
+  if (!error || error.code === 'PGRST116') {
+    const { data: newProfile, error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email || '',
+        full_name: (user.user_metadata as any)?.full_name || '',
+      })
+      .select()
+      .single();
+
+    if (!insertError && newProfile) return newProfile as Profile;
   }
-  return data as Profile | null;
+
+  return { id: user.id, email: user.email || '', full_name: '', role: 'customer', created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Profile;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -52,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = async () => {
     if (!user) return;
-    const p = await fetchProfile(user.id);
+    const p = await ensureProfile(user);
     setProfile(p);
   };
 
@@ -61,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id).then(setProfile);
+        ensureProfile(session.user).then(setProfile);
       }
       setLoading(false);
     });
@@ -70,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id).then(setProfile);
+        ensureProfile(session.user).then(setProfile);
       } else {
         setProfile(null);
       }

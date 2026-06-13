@@ -121,6 +121,7 @@ export default function HomeScreen({ navigation }: any) {
   }, []);
 
   const loading = featured.loading || flashSales.loading || allCategories.loading;
+  const fetchError = featured.error || flashSales.error || allCategories.error;
 
   if (loading && !refreshing) {
     return (
@@ -135,6 +136,23 @@ export default function HomeScreen({ navigation }: any) {
     ? categories
     : categories.slice(0, CATEGORY_COLLAPSE_THRESHOLD);
   const hasMoreCategories = categories.length > CATEGORY_COLLAPSE_THRESHOLD;
+
+  if (fetchError && !loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}>
+        <Ionicons name="cloud-offline-outline" size={48} color={colors.error} />
+        <Text style={{ fontSize: 16, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.md, marginBottom: spacing.lg }}>
+          {fetchError}
+        </Text>
+        <TouchableOpacity
+          onPress={onRefresh}
+          style={{ backgroundColor: colors.primary, paddingVertical: 12, paddingHorizontal: 32, borderRadius: 12 }}
+        >
+          <Text style={{ color: colors.onPrimary, fontWeight: '600' }}>إعادة المحاولة</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

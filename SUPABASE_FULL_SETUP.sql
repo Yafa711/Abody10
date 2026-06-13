@@ -238,12 +238,15 @@ CREATE POLICY categories_delete ON public.categories FOR DELETE
 
 DROP POLICY IF EXISTS profiles_select_own ON public.profiles;
 DROP POLICY IF EXISTS profiles_select_admin ON public.profiles;
+DROP POLICY IF EXISTS profiles_insert_own ON public.profiles;
 DROP POLICY IF EXISTS profiles_update_own ON public.profiles;
 DROP POLICY IF EXISTS profiles_update_admin ON public.profiles;
 CREATE POLICY profiles_select_own ON public.profiles FOR SELECT
   USING (auth.uid() = id);
 CREATE POLICY profiles_select_admin ON public.profiles FOR SELECT
   USING (auth.jwt() ->> 'role' IN ('admin', 'super_admin'));
+CREATE POLICY profiles_insert_own ON public.profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
 CREATE POLICY profiles_update_own ON public.profiles FOR UPDATE
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
@@ -483,26 +486,14 @@ CREATE TRIGGER on_order_item_inserted
   EXECUTE FUNCTION public.calculate_order_total();
 
 -- ============================================
--- 8. Create Admin Account
+-- 8. Create profiles for all existing auth.users
+-- (trigger on_auth_user_created only fires on NEW users)
 -- ============================================
 
-INSERT INTO auth.users (
-  instance_id, id, aud, role,
-  email, encrypted_password, email_confirmed_at,
-  raw_user_meta_data, created_at, updated_at
-)
-SELECT
-  '00000000-0000-0000-0000-000000000000',
-  gen_random_uuid(),
-  'authenticated',
-  'authenticated',
-  'abnbwh@gmail.com',
-  crypt('Abod#7822', gen_salt('bf')),
-  now(),
-  jsonb_build_object('full_name', 'مدير المتجر'),
-  now(),
-  now()
-WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'abnbwh@gmail.com');
+INSERT INTO public.profiles (id, email, full_name)
+SELECT id, email, COALESCE(raw_user_meta_data ->> 'full_name', '')
+FROM auth.users
+ON CONFLICT (id) DO NOTHING;
 
 UPDATE public.profiles
 SET role = 'super_admin'
