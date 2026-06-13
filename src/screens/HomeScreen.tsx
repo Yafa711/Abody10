@@ -6,6 +6,7 @@ import {
   RefreshControl,
   TouchableOpacity,
   Animated,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../themes/ThemeContext';
@@ -72,6 +73,8 @@ const CATEGORY_ICONS: Record<string, string> = {
 export default function HomeScreen({ navigation }: any) {
   const { colors, spacing } = useTheme();
   const { user } = useAuth();
+  const screenWidth = Dimensions.get('window').width;
+  const categoryCardWidth = (screenWidth - spacing.lg * 2 - 10) / 2;
 
   const [refreshing, setRefreshing] = useState(false);
   const [banners, setBanners] = useState<BannerItem[]>([]);
@@ -178,7 +181,11 @@ export default function HomeScreen({ navigation }: any) {
         <AnimatedSection delay={150}>
           <HeroBanner
             items={banners}
-            onPress={(item) => navigation.navigate('ProductDetails', { id: item.id })}
+            onPress={(_item) => {
+              if (featured.products.length > 0) {
+                navigation.navigate('ProductDetails', { id: featured.products[0].id });
+              }
+            }}
           />
         </AnimatedSection>
 
@@ -212,12 +219,12 @@ export default function HomeScreen({ navigation }: any) {
                   }
                   intensity="light"
                   style={{
-                    width: isLarge ? '100%' : '48%',
-                    height: isLarge ? 84 : 76,
-                    flexDirection: isLarge ? 'row' as any : 'column' as any,
+                    width: isLarge ? screenWidth - spacing.lg * 2 : categoryCardWidth,
+                    height: 82,
+                    flexDirection: 'row' as any,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    paddingHorizontal: spacing.lg,
+                    paddingHorizontal: spacing.md,
                   }}
                 >
                   <View
@@ -228,15 +235,14 @@ export default function HomeScreen({ navigation }: any) {
                       backgroundColor: colors.primary,
                       justifyContent: 'center',
                       alignItems: 'center',
-                      marginBottom: isLarge ? 0 : spacing.xs,
-                      marginRight: isLarge ? spacing.md : 0,
+                      marginRight: spacing.md,
                     }}
                   >
                     <Ionicons name={iconName as any} size={20} color="#FFFFFF" />
                   </View>
                   <Text
                     style={{
-                      fontSize: isLarge ? 16 : 13,
+                      fontSize: 14,
                       fontWeight: '600',
                       color: colors.textPrimary,
                     }}

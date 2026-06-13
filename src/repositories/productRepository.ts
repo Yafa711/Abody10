@@ -46,6 +46,8 @@ export const productRepository = {
   },
 
   async getById(id: string): Promise<Product | null> {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!id || !UUID_RE.test(id)) return null;
     const { data, error } = await supabase
       .from('products')
       .select('*')
