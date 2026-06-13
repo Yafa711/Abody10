@@ -10,7 +10,23 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ============================================
--- 2. Auto-Confirm Email Trigger
+-- 2. Restore Default Schema Permissions
+-- (DROP SCHEMA public CASCADE resets these)
+-- ============================================
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  GRANT ALL ON TABLES TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  GRANT ALL ON SEQUENCES TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  GRANT ALL ON FUNCTIONS TO anon, authenticated;
+
+-- ============================================
+-- 3. Auto-Confirm Email Trigger
 -- ============================================
 CREATE OR REPLACE FUNCTION public.auto_confirm_email()
 RETURNS TRIGGER
@@ -33,7 +49,7 @@ CREATE TRIGGER on_auth_user_auto_confirm
   EXECUTE FUNCTION public.auto_confirm_email();
 
 -- ============================================
--- 3. Tables (CREATE IF NOT EXISTS)
+-- 4. Tables (CREATE IF NOT EXISTS)
 -- ============================================
 CREATE TABLE IF NOT EXISTS public.profiles (
   id            UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -415,7 +431,7 @@ ALTER TABLE IF EXISTS public.search_queries DROP CONSTRAINT IF EXISTS search_que
 ALTER TABLE public.search_queries ADD CONSTRAINT search_queries_query_unique UNIQUE (query);
 
 -- ============================================
--- 7. Triggers
+-- 8. Triggers
 -- ============================================
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -486,7 +502,7 @@ CREATE TRIGGER on_order_item_inserted
   EXECUTE FUNCTION public.calculate_order_total();
 
 -- ============================================
--- 8. Create profiles for all existing auth.users
+-- 9. Create profiles for all existing auth.users
 -- (trigger on_auth_user_created only fires on NEW users)
 -- ============================================
 
@@ -500,7 +516,7 @@ SET role = 'super_admin'
 WHERE email = 'abnbwh@gmail.com';
 
 -- ============================================
--- 9. Sample Data
+-- 10. Sample Data
 -- ============================================
 
 -- Categories (proper hex UUIDs)
