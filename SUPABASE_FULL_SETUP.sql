@@ -521,37 +521,37 @@ WHERE email = 'abnbwh@gmail.com';
 
 -- Categories (proper hex UUIDs)
 INSERT INTO public.categories (id, name, name_ar, slug, image_url) VALUES
-  ('00000001-0000-0000-0000-000000000001', 'Smartphones', 'الهواتف الذكية', 'smartphones', 'https://picsum.photos/seed/cat1/400/400'),
-  ('00000002-0000-0000-0000-000000000002', 'Laptops', 'أجهزة الكمبيوتر المحمولة', 'laptops', 'https://picsum.photos/seed/cat2/400/400'),
-  ('00000003-0000-0000-0000-000000000003', 'Headphones', 'سماعات الرأس', 'headphones', 'https://picsum.photos/seed/cat3/400/400'),
-  ('00000004-0000-0000-0000-000000000004', 'Accessories', 'الإكسسوارات', 'accessories', 'https://picsum.photos/seed/cat4/400/400'),
-  ('00000005-0000-0000-0000-000000000005', 'Smart Watches', 'الساعات الذكية', 'smart-watches', 'https://picsum.photos/seed/cat5/400/400'),
-  ('00000006-0000-0000-0000-000000000006', 'Tablets', 'الأجهزة اللوحية', 'tablets', 'https://picsum.photos/seed/cat6/400/400')
+  ('00000001-0000-0000-0000-000000000001', 'Smartphones', 'الهواتف الذكية', 'smartphones', 'https://placehold.co/400x400/6D28D9/FFFFFF?text=هواتف'),
+  ('00000002-0000-0000-0000-000000000002', 'Laptops', 'أجهزة الكمبيوتر المحمولة', 'laptops', 'https://placehold.co/400x400/7C3AED/FFFFFF?text=لابتوب'),
+  ('00000003-0000-0000-0000-000000000003', 'Headphones', 'سماعات الرأس', 'headphones', 'https://placehold.co/400x400/8B5CF6/FFFFFF?text=سماعات'),
+  ('00000004-0000-0000-0000-000000000004', 'Accessories', 'الإكسسوارات', 'accessories', 'https://placehold.co/400x400/EC4899/FFFFFF?text=إكسسوارات'),
+  ('00000005-0000-0000-0000-000000000005', 'Smart Watches', 'الساعات الذكية', 'smart-watches', 'https://placehold.co/400x400/3B82F6/FFFFFF?text=ساعات'),
+  ('00000006-0000-0000-0000-000000000006', 'Tablets', 'الأجهزة اللوحية', 'tablets', 'https://placehold.co/400x400/10B981/FFFFFF?text=لوحي')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Products (proper hex UUIDs, category IDs must match above)
 INSERT INTO public.products (id, title, description, price, original_price, image_url, category_id, featured, flash_sale, flash_sale_price, stock, rating, reviews_count) VALUES
-  ('00000001-0000-0001-0000-000000000001', 'Samsung Galaxy S24 Ultra', 'أحدث هاتف ذكي من سامسونج مع كاميرا 200 ميجابكسل', 4299, 4999, 'https://picsum.photos/seed/prod1/600/600', '00000001-0000-0000-0000-000000000001', true, true, 3899, 15, 4.8, 124),
-  ('00000002-0000-0001-0000-000000000002', 'iPhone 15 Pro Max', 'هاتف أبل الأحدث مع شريحة A17 Pro', 4899, 5499, 'https://picsum.photos/seed/prod2/600/600', '00000001-0000-0000-0000-000000000001', true, false, NULL, 10, 4.9, 256),
-  ('00000003-0000-0001-0000-000000000003', 'MacBook Pro M3', 'لاب توب أبل برو مع شريحة M3 مقاس 16 إنش', 8499, 9499, 'https://picsum.photos/seed/prod3/600/600', '00000002-0000-0000-0000-000000000002', true, false, NULL, 5, 4.7, 89),
-  ('00000004-0000-0001-0000-000000000004', 'Sony WH-1000XM5', 'سماعات رأس لاسلكية مانعة للضوضاء', 1299, 1599, 'https://picsum.photos/seed/prod4/600/600', '00000003-0000-0000-0000-000000000003', true, true, 1099, 25, 4.6, 312),
-  ('00000005-0000-0001-0000-000000000005', 'Apple Watch Ultra 2', 'ساعة أبل الرياضية المتطورة', 3299, 3799, 'https://picsum.photos/seed/prod5/600/600', '00000005-0000-0000-0000-000000000005', true, false, NULL, 8, 4.5, 67),
-  ('00000006-0000-0001-0000-000000000006', 'iPad Air M2', 'جهاز أبل اللوحي مع شريحة M2', 2799, 3299, 'https://picsum.photos/seed/prod6/600/600', '00000006-0000-0000-0000-000000000006', false, true, 2499, 12, 4.4, 45),
-  ('00000007-0000-0001-0000-000000000007', 'Xiaomi Power Bank 20000mAh', 'بطارية متنقلة بسعة 20000 ميللي أمبير', 159, 199, 'https://picsum.photos/seed/prod7/600/600', '00000004-0000-0000-0000-000000000004', false, false, NULL, 100, 4.3, 523),
-  ('00000008-0000-0001-0000-000000000008', 'Galaxy Buds2 Pro', 'سماعات أذن لاسلكية من سامسونج', 699, 849, 'https://picsum.photos/seed/prod8/600/600', '00000004-0000-0000-0000-000000000004', true, true, 599, 30, 4.4, 198)
+  ('00000001-0000-0001-0000-000000000001', 'Samsung Galaxy S24 Ultra', 'أحدث هاتف ذكي من سامسونج مع كاميرا 200 ميجابكسل', 4299, 4999, 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=S24+Ultra', '00000001-0000-0000-0000-000000000001', true, true, 3899, 15, 4.8, 124),
+  ('00000002-0000-0001-0000-000000000002', 'iPhone 15 Pro Max', 'هاتف أبل الأحدث مع شريحة A17 Pro', 4899, 5499, 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=iPhone+15', '00000001-0000-0000-0000-000000000001', true, false, NULL, 10, 4.9, 256),
+  ('00000003-0000-0001-0000-000000000003', 'MacBook Pro M3', 'لاب توب أبل برو مع شريحة M3 مقاس 16 إنش', 8499, 9499, 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=MacBook+Pro', '00000002-0000-0000-0000-000000000002', true, false, NULL, 5, 4.7, 89),
+  ('00000004-0000-0001-0000-000000000004', 'Sony WH-1000XM5', 'سماعات رأس لاسلكية مانعة للضوضاء', 1299, 1599, 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=WH-1000XM5', '00000003-0000-0000-0000-000000000003', true, true, 1099, 25, 4.6, 312),
+  ('00000005-0000-0001-0000-000000000005', 'Apple Watch Ultra 2', 'ساعة أبل الرياضية المتطورة', 3299, 3799, 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=Watch+Ultra', '00000005-0000-0000-0000-000000000005', true, false, NULL, 8, 4.5, 67),
+  ('00000006-0000-0001-0000-000000000006', 'iPad Air M2', 'جهاز أبل اللوحي مع شريحة M2', 2799, 3299, 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=iPad+Air', '00000006-0000-0000-0000-000000000006', false, true, 2499, 12, 4.4, 45),
+  ('00000007-0000-0001-0000-000000000007', 'Xiaomi Power Bank 20000mAh', 'بطارية متنقلة بسعة 20000 ميللي أمبير', 159, 199, 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=Power+Bank', '00000004-0000-0000-0000-000000000004', false, false, NULL, 100, 4.3, 523),
+  ('00000008-0000-0001-0000-000000000008', 'Galaxy Buds2 Pro', 'سماعات أذن لاسلكية من سامسونج', 699, 849, 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=Buds2+Pro', '00000004-0000-0000-0000-000000000004', true, true, 599, 30, 4.4, 198)
 ON CONFLICT (id) DO NOTHING;
 
 -- Product Images
 INSERT INTO public.product_images (product_id, url, sort_order) VALUES
-  ('00000001-0000-0001-0000-000000000001', 'https://picsum.photos/seed/prod1a/600/600', 1),
-  ('00000001-0000-0001-0000-000000000001', 'https://picsum.photos/seed/prod1b/600/600', 2),
-  ('00000001-0000-0001-0000-000000000001', 'https://picsum.photos/seed/prod1c/600/600', 3);
+  ('00000001-0000-0001-0000-000000000001', 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=S24+Ultra+1', 1),
+  ('00000001-0000-0001-0000-000000000001', 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=S24+Ultra+2', 2),
+  ('00000001-0000-0001-0000-000000000001', 'https://placehold.co/600x600/1E1B4B/FFFFFF?text=S24+Ultra+3', 3);
 
 -- Banners
 INSERT INTO public.banners (image_url, link_url, sort_order, active) VALUES
-  ('https://picsum.photos/seed/banner1/1200/400', NULL, 1, true),
-  ('https://picsum.photos/seed/banner2/1200/400', NULL, 2, true),
-  ('https://picsum.photos/seed/banner3/1200/400', NULL, 3, true);
+  ('https://placehold.co/1200x400/6D28D9/FFFFFF?text=تخفيضات+كبيرة', NULL, 1, true),
+  ('https://placehold.co/1200x400/7C3AED/FFFFFF?text=عروض+مميزة', NULL, 2, true),
+  ('https://placehold.co/1200x400/8B5CF6/FFFFFF?text=أحدث+المنتجات', NULL, 3, true);
 
 -- Cities (proper hex UUIDs)
 INSERT INTO public.cities (id, name, name_ar, shipping_fee, delivery_days, active) VALUES

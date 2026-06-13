@@ -20,6 +20,8 @@ export function useProducts(initialFilters?: ProductFilters): UseProductsReturn 
   const [error, setError] = useState<string | null>(null);
   const [fromCache, setFromCache] = useState(false);
   const fetchIdRef = useRef(0);
+  const filtersRef = useRef(initialFilters);
+  filtersRef.current = initialFilters;
 
   const fetch = useCallback(async (filters?: ProductFilters) => {
     const id = ++fetchIdRef.current;
@@ -27,7 +29,8 @@ export function useProducts(initialFilters?: ProductFilters): UseProductsReturn 
     setError(null);
     setFromCache(false);
 
-    const cacheKey = `products_${JSON.stringify(filters || initialFilters)}`;
+    const activeFilters = filters ?? filtersRef.current;
+    const cacheKey = `products_${JSON.stringify(activeFilters)}`;
 
     try {
       if (!isOnline()) {
@@ -41,7 +44,7 @@ export function useProducts(initialFilters?: ProductFilters): UseProductsReturn 
         }
       }
 
-      const result = await productService.getProducts(filters || initialFilters);
+      const result = await productService.getProducts(activeFilters);
       if (id !== fetchIdRef.current) return;
       setProducts(result.data);
       setTotal(result.total);
@@ -59,11 +62,12 @@ export function useProducts(initialFilters?: ProductFilters): UseProductsReturn 
     } finally {
       if (id === fetchIdRef.current) setLoading(false);
     }
-  }, [initialFilters]);
+  }, []);
 
   useEffect(() => {
     fetch(initialFilters);
-  }, [fetch, initialFilters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { products, total, loading, error, refetch: fetch, fromCache };
 }
