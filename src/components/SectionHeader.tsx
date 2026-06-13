@@ -1,7 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
 
 interface SectionHeaderProps {
@@ -14,10 +13,10 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function SectionHeader({ title, actionLabel, onAction }: SectionHeaderProps) {
   const { colors, spacing, typography } = useTheme();
-  const scale = useSharedValue(1);
-  const handlePressIn = () => { scale.value = withSpring(0.95, { damping: 15, stiffness: 200 }); };
-  const handlePressOut = () => { scale.value = withSpring(1, { damping: 15, stiffness: 200 }); };
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const scale = useRef(new Animated.Value(1)).current;
+  const handlePressIn = () => { Animated.spring(scale, { toValue: 0.95, damping: 15, stiffness: 200, useNativeDriver: true }).start(); };
+  const handlePressOut = () => { Animated.spring(scale, { toValue: 1, damping: 15, stiffness: 200, useNativeDriver: true }).start(); };
+  const animStyle = { transform: [{ scale }] };
 
   return (
     <View

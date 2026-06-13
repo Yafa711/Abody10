@@ -1,11 +1,6 @@
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet, ViewStyle, Platform } from 'react-native';
+import React, { useRef } from 'react';
+import { View, TouchableOpacity, StyleSheet, ViewStyle, Platform, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
 
 interface GlassCardProps {
@@ -28,14 +23,12 @@ export default function GlassCard({
   onPress,
 }: GlassCardProps) {
   const { colors, radius } = useTheme();
-  const scale = useSharedValue(1);
+  const scale = useRef(new Animated.Value(1)).current;
 
-  const handlePressIn = () => { scale.value = withSpring(0.97, { damping: 15, stiffness: 200 }); };
-  const handlePressOut = () => { scale.value = withSpring(1, { damping: 15, stiffness: 200 }); };
+  const handlePressIn = () => { Animated.spring(scale, { toValue: 0.97, damping: 15, stiffness: 200, useNativeDriver: true }).start(); };
+  const handlePressOut = () => { Animated.spring(scale, { toValue: 1, damping: 15, stiffness: 200, useNativeDriver: true }).start(); };
 
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const animStyle = { transform: [{ scale }] };
 
   const blurIntensity = { light: 20, medium: 40, heavy: 60 }[intensity];
   const baseStyle = {

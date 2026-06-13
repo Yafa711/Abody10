@@ -1,10 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Image, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import { View, Image, ScrollView, Dimensions, TouchableOpacity, Animated } from 'react-native';
 import { useTheme } from '../themes/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -27,22 +22,17 @@ function BannerSlide({ item, index, activeIndex, onPress }: {
   activeIndex: number;
   onPress?: (item: HeroBannerItem) => void;
 }) {
-  const scale = useSharedValue(0.85);
-  const opacity = useSharedValue(0.6);
+  const scale = useRef(new Animated.Value(0.85)).current;
+  const opacity = useRef(new Animated.Value(0.6)).current;
 
   useEffect(() => {
     const isActive = index === activeIndex;
-    scale.value = withSpring(isActive ? 1 : 0.85, { damping: 15, stiffness: 100 });
-    opacity.value = withSpring(isActive ? 1 : 0.6, { damping: 15, stiffness: 100 });
+    Animated.spring(scale, { toValue: isActive ? 1 : 0.85, damping: 15, stiffness: 100, useNativeDriver: true }).start();
+    Animated.spring(opacity, { toValue: isActive ? 1 : 0.6, damping: 15, stiffness: 100, useNativeDriver: true }).start();
   }, [activeIndex]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
   return (
-    <Animated.View style={[{ width: SCREEN_WIDTH - 32, marginHorizontal: 16, height: BANNER_HEIGHT }, animatedStyle]}>
+    <Animated.View style={[{ width: SCREEN_WIDTH - 32, marginHorizontal: 16, height: BANNER_HEIGHT }, { transform: [{ scale }], opacity }]}>
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={() => onPress?.(item)}

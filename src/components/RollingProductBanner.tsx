@@ -1,14 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Image, Dimensions, StyleSheet } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withRepeat,
-  Easing,
-  cancelAnimation,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { View, Image, Dimensions, StyleSheet, Animated, Easing } from 'react-native';
 import { useTheme } from '../themes/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -36,58 +27,57 @@ function AnimatedProduct({
   total: number;
 }) {
   const { colors } = useTheme();
-  const enterScale = useSharedValue(0);
-  const enterOpacity = useSharedValue(0);
-  const translateX = useSharedValue(SCREEN_WIDTH + 200);
-  const rotate = useSharedValue(0);
-  const swingOffset = useSharedValue(0);
+  const enterScale = useRef(new Animated.Value(0)).current;
+  const enterOpacity = useRef(new Animated.Value(0)).current;
+  const translateX = useRef(new Animated.Value(SCREEN_WIDTH + 200)).current;
+  const rotate = useRef(new Animated.Value(0)).current;
+  const swingAnim = useRef(new Animated.Value(0)).current;
 
   const staggerDelay = (index / total) * 3000;
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      // Spring for entrance
-      enterScale.value = withSpring(1, { damping: 12, stiffness: 100 });
-      enterOpacity.value = withSpring(1, { damping: 12, stiffness: 100 });
+      Animated.parallel([
+        Animated.spring(enterScale, { toValue: 1, damping: 12, stiffness: 100, useNativeDriver: true }),
+        Animated.spring(enterOpacity, { toValue: 1, damping: 12, stiffness: 100, useNativeDriver: true }),
+      ]).start();
 
-      // Timing-based for continuous rolling (withRepeat + withSpring is unsafe)
-      translateX.value = withRepeat(
-        withTiming(-300, { duration: 6000, easing: Easing.inOut(Easing.sin) }),
-        -1, false,
-      );
-      rotate.value = withRepeat(
-        withTiming(720, { duration: 6000, easing: Easing.linear }),
-        -1, false,
-      );
-      swingOffset.value = withRepeat(
-        withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.sin) }),
-        -1, false,
-      );
+      Animated.loop(
+        Animated.parallel([
+          Animated.timing(translateX, {
+            toValue: -300,
+            duration: 6000,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(rotate, {
+            toValue: 720,
+            duration: 6000,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+          Animated.timing(swingAnim, {
+            toValue: 1,
+            duration: 6000,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+        ]),
+        { iterations: -1 },
+      ).start();
     }, staggerDelay);
 
-    return () => {
-      clearTimeout(timeout);
-      cancelAnimation(translateX);
-      cancelAnimation(rotate);
-      cancelAnimation(swingOffset);
-    };
+    return () => clearTimeout(timeout);
   }, []);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    const progress = swingOffset.value;
-    const swingY = Math.sin(progress * Math.PI * 2) * 30;
-    const ropeAngle = Math.sin(progress * Math.PI * 2) * 0.3;
+  const swingY = swingAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 60],
+  });
 
-    return {
-      opacity: enterOpacity.value,
-      transform: [
-        { scale: enterScale.value },
-        { translateX: translateX.value },
-        { translateY: ROPE_LENGTH + swingY },
-        { rotate: `${rotate.value}deg` },
-        { rotate: `${ropeAngle}rad` },
-      ],
-    };
+  const ropeAngle = swingAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: ['0rad', '0.3rad', '0rad'],
   });
 
   const [imageLoaded, setImageLoaded] = React.useState(false);
@@ -96,7 +86,16 @@ function AnimatedProduct({
     <Animated.View
       style={[
         styles.productContainer,
-        animatedStyle,
+        {
+          opacity: enterOpacity,
+          transform: [
+            { scale: enterScale },
+            { translateX },
+            { translateY: Animated.add(ROPE_LENGTH, swingY) },
+            { rotate: rotate.interpolate({ inputRange: [0, 720], outputRange: ['0deg', '720deg'] }) },
+            { rotate: ropeAngle },
+          ],
+        },
       ]}
     >
       <View style={styles.rope} />

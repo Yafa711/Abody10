@@ -1,11 +1,6 @@
-import React, { useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
 import { Product } from '../types/product';
 
@@ -16,7 +11,7 @@ interface ProductCardProps {
   isFavorited?: boolean;
   horizontal?: boolean;
   index?: number;
-  cardRef?: React.RefObject<View>;
+  cardRef?: React.RefObject<TouchableOpacity>;
   onLayout?: (event: any) => void;
 }
 
@@ -33,33 +28,31 @@ export default function ProductCard({
   onLayout,
 }: ProductCardProps) {
   const { colors, spacing, radius, typography } = useTheme();
-  const scale = useSharedValue(1);
-  const enterOpacity = useSharedValue(0);
-  const enterTranslateY = useSharedValue(50);
+  const scale = useRef(new Animated.Value(1)).current;
+  const enterOpacity = useRef(new Animated.Value(0)).current;
+  const enterTranslateY = useRef(new Animated.Value(50)).current;
 
   useEffect(() => {
     const delay = index * 80;
     setTimeout(() => {
-      enterOpacity.value = withSpring(1, { damping: 14, stiffness: 100 });
-      enterTranslateY.value = withSpring(0, { damping: 20, stiffness: 120 });
+      Animated.spring(enterOpacity, { toValue: 1, damping: 14, stiffness: 100, useNativeDriver: true }).start();
+      Animated.spring(enterTranslateY, { toValue: 0, damping: 20, stiffness: 120, useNativeDriver: true }).start();
     }, delay);
   }, []);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const animatedStyle = { transform: [{ scale }] };
 
-  const enterStyle = useAnimatedStyle(() => ({
-    opacity: enterOpacity.value,
-    transform: [{ translateY: enterTranslateY.value }],
-  }));
+  const enterStyle = {
+    opacity: enterOpacity,
+    transform: [{ translateY: enterTranslateY }],
+  };
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.96, { damping: 15 });
+    Animated.spring(scale, { toValue: 0.96, damping: 15, useNativeDriver: true }).start();
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15 });
+    Animated.spring(scale, { toValue: 1, damping: 15, useNativeDriver: true }).start();
   };
 
   const currentPrice = product.flash_sale && product.flash_sale_price

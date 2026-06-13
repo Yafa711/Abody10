@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useTheme } from '../../themes/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../../components/ui/Button';
@@ -15,38 +14,31 @@ export default function LoginScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const logoScale = useSharedValue(0);
-  const logoOpacity = useSharedValue(0);
-  const titleY = useSharedValue(30);
-  const titleOpacity = useSharedValue(0);
-  const formY = useSharedValue(40);
-  const formOpacity = useSharedValue(0);
+  const logoScale = useRef(new Animated.Value(0)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const titleY = useRef(new Animated.Value(30)).current;
+  const titleOpacity = useRef(new Animated.Value(0)).current;
+  const formY = useRef(new Animated.Value(40)).current;
+  const formOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    logoScale.value = withSpring(1, { damping: 10, stiffness: 100 });
-    logoOpacity.value = withSpring(1, { damping: 10, stiffness: 100 });
+    Animated.parallel([
+      Animated.spring(logoScale, { toValue: 1, useNativeDriver: true, damping: 10, stiffness: 100 }),
+      Animated.spring(logoOpacity, { toValue: 1, useNativeDriver: true, damping: 10, stiffness: 100 }),
+    ]).start();
     setTimeout(() => {
-      titleY.value = withSpring(0, { damping: 14, stiffness: 100 });
-      titleOpacity.value = withSpring(1, { damping: 14, stiffness: 100 });
+      Animated.parallel([
+        Animated.spring(titleY, { toValue: 0, useNativeDriver: true, damping: 14, stiffness: 100 }),
+        Animated.spring(titleOpacity, { toValue: 1, useNativeDriver: true, damping: 14, stiffness: 100 }),
+      ]).start();
     }, 200);
     setTimeout(() => {
-      formY.value = withSpring(0, { damping: 16, stiffness: 100 });
-      formOpacity.value = withSpring(1, { damping: 16, stiffness: 100 });
+      Animated.parallel([
+        Animated.spring(formY, { toValue: 0, useNativeDriver: true, damping: 16, stiffness: 100 }),
+        Animated.spring(formOpacity, { toValue: 1, useNativeDriver: true, damping: 16, stiffness: 100 }),
+      ]).start();
     }, 400);
   }, []);
-
-  const logoStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: logoScale.value }],
-    opacity: logoOpacity.value,
-  }));
-  const titleStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: titleY.value }],
-    opacity: titleOpacity.value,
-  }));
-  const formStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: formY.value }],
-    opacity: formOpacity.value,
-  }));
 
   const handleLogin = async () => {
     setLoading(true);
@@ -65,6 +57,10 @@ export default function LoginScreen({ navigation }: any) {
     }
   };
 
+  const logoAnim = { transform: [{ scale: logoScale }], opacity: logoOpacity };
+  const titleAnim = { transform: [{ translateY: titleY }], opacity: titleOpacity };
+  const formAnim = { transform: [{ translateY: formY }], opacity: formOpacity };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
@@ -74,7 +70,7 @@ export default function LoginScreen({ navigation }: any) {
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: spacing.xl }}
         keyboardShouldPersistTaps="handled"
       >
-        <Animated.View style={[{ alignItems: 'center', marginBottom: spacing.lg }, logoStyle]}>
+        <Animated.View style={[{ alignItems: 'center', marginBottom: spacing.lg }, logoAnim]}>
           <View style={{
             width: 80,
             height: 80,
@@ -86,7 +82,8 @@ export default function LoginScreen({ navigation }: any) {
             <Ionicons name="flash" size={36} color={colors.primary} />
           </View>
         </Animated.View>
-        <Animated.View style={[{ alignItems: 'center', marginBottom: spacing.xxxxl }, titleStyle]}>
+
+        <Animated.View style={[{ alignItems: 'center', marginBottom: spacing.xxxxl }, titleAnim]}>
           <Text style={{ fontSize: 36, fontWeight: '700', color: colors.textPrimary, letterSpacing: 1 }}>
             متجر الكتروني
           </Text>
@@ -95,60 +92,60 @@ export default function LoginScreen({ navigation }: any) {
           </Text>
         </Animated.View>
 
-        <Animated.View style={formStyle}>
-        <Input
-          label="البريد الإلكتروني"
-          placeholder="أدخل بريدك الإلكتروني"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          containerStyle={{ marginBottom: spacing.md }}
-        />
+        <Animated.View style={formAnim}>
+          <Input
+            label="البريد الإلكتروني"
+            placeholder="أدخل بريدك الإلكتروني"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            containerStyle={{ marginBottom: spacing.md }}
+          />
 
-        <Input
-          label="كلمة المرور"
-          placeholder="أدخل كلمة المرور"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          containerStyle={{ marginBottom: spacing.md }}
-        />
+          <Input
+            label="كلمة المرور"
+            placeholder="أدخل كلمة المرور"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            containerStyle={{ marginBottom: spacing.md }}
+          />
 
-        {error ? (
-          <View style={{
-            backgroundColor: colors.error,
-            borderRadius: 8,
-            padding: spacing.sm,
-            marginBottom: spacing.md,
-          }}>
-            <Text style={{ color: '#FFFFFF', textAlign: 'center', fontSize: 14 }}>{error}</Text>
-          </View>
-        ) : null}
+          {error ? (
+            <View style={{
+              backgroundColor: colors.error,
+              borderRadius: 8,
+              padding: spacing.sm,
+              marginBottom: spacing.md,
+            }}>
+              <Text style={{ color: '#FFFFFF', textAlign: 'center', fontSize: 14 }}>{error}</Text>
+            </View>
+          ) : null}
 
-        <Button
-          onPress={handleLogin}
-          loading={loading}
-          disabled={loading}
-          size="lg"
-          style={{ width: '100%', marginBottom: spacing.md }}
-        >
-          تسجيل الدخول
-        </Button>
+          <Button
+            onPress={handleLogin}
+            loading={loading}
+            disabled={loading}
+            size="lg"
+            style={{ width: '100%', marginBottom: spacing.md }}
+          >
+            تسجيل الدخول
+          </Button>
 
-        <TouchableOpacity
-          onPress={() => navigation.navigate('ForgotPassword')}
-          style={{ alignItems: 'center', marginBottom: spacing.xxl }}
-        >
-          <Text style={{ color: colors.textSecondary, fontSize: 14 }}>نسيت كلمة المرور؟</Text>
-        </TouchableOpacity>
-
-        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: colors.textSecondary, fontSize: 14 }}>ليس لديك حساب؟</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')} style={{ marginLeft: spacing.xs }}>
-            <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '600' }}>إنشاء حساب</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ForgotPassword')}
+            style={{ alignItems: 'center', marginBottom: spacing.xxl }}
+          >
+            <Text style={{ color: colors.textSecondary, fontSize: 14 }}>نسيت كلمة المرور؟</Text>
           </TouchableOpacity>
-        </View>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ color: colors.textSecondary, fontSize: 14 }}>ليس لديك حساب؟</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')} style={{ marginLeft: spacing.xs }}>
+              <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '600' }}>إنشاء حساب</Text>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>

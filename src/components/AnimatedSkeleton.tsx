@@ -1,12 +1,5 @@
-import React, { useEffect } from 'react';
-import { View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSpring,
-  cancelAnimation,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { View, Animated } from 'react-native';
 import { useTheme } from '../themes/ThemeContext';
 
 interface SkeletonBoxProps {
@@ -18,20 +11,18 @@ interface SkeletonBoxProps {
 
 function SkeletonBox({ width = '100%', height, borderRadius = 8, style }: SkeletonBoxProps) {
   const { colors } = useTheme();
-  const opacity = useSharedValue(0.3);
+  const opacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
-    opacity.value = withRepeat(
-      withSpring(0.7, { stiffness: 40, damping: 8 }),
-      -1,
-      true,
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.7, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ])
     );
-    return () => cancelAnimation(opacity);
+    animation.start();
+    return () => animation.stop();
   }, []);
-
-  const animStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
 
   return (
     <Animated.View
@@ -42,7 +33,7 @@ function SkeletonBox({ width = '100%', height, borderRadius = 8, style }: Skelet
           borderRadius,
           backgroundColor: colors.surfaceVariant,
         },
-        animStyle,
+        { opacity },
         style,
       ]}
     />

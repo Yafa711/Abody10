@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
 import { useTheme } from '../themes/ThemeContext';
 import { useProduct, useFavorites } from '../hooks';
 import { useAuth } from '../contexts/AuthContext';
@@ -34,46 +30,28 @@ export default function ProductDetailScreen({ navigation, route }: any) {
   const { colors, spacing, radius, typography } = useTheme();
   const { user } = useAuth();
   const productId: string | undefined = route.params?.id;
-  const layoutX = route.params?.layoutX;
-  const layoutY = route.params?.layoutY;
   const layoutW = route.params?.layoutW;
-  const layoutH = route.params?.layoutH;
 
-  const imageScale = useSharedValue(layoutW ? layoutW / SCREEN_WIDTH : 1);
-  const imageTranslateX = useSharedValue(layoutX ?? 0);
-  const imageTranslateY = useSharedValue(layoutY ?? 0);
-  const imageOpacity = useSharedValue(layoutW ? 0 : 1);
-  const imageHeight = useSharedValue(layoutH ?? SCREEN_HEIGHT * 0.4);
-  const contentOpacity = useSharedValue(0);
+  const imageScale = useRef(new Animated.Value(layoutW ? layoutW / SCREEN_WIDTH : 1)).current;
+  const imageTranslateX = useRef(new Animated.Value(route.params?.layoutX ?? 0)).current;
+  const imageTranslateY = useRef(new Animated.Value(route.params?.layoutY ?? 0)).current;
+  const imageOpacity = useRef(new Animated.Value(layoutW ? 0 : 1)).current;
+  const imageHeight = useRef(new Animated.Value(route.params?.layoutH ?? SCREEN_HEIGHT * 0.4)).current;
+  const contentOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (layoutW) {
-      imageScale.value = withSpring(1, { damping: 18, stiffness: 120 });
-      imageTranslateX.value = withSpring(0, { damping: 18, stiffness: 120 });
-      imageTranslateY.value = withSpring(0, { damping: 18, stiffness: 120 });
-      imageOpacity.value = withSpring(1, { damping: 14, stiffness: 100 });
+      Animated.parallel([
+        Animated.spring(imageScale, { toValue: 1, damping: 18, stiffness: 120, useNativeDriver: true }),
+        Animated.spring(imageTranslateX, { toValue: 0, damping: 18, stiffness: 120, useNativeDriver: true }),
+        Animated.spring(imageTranslateY, { toValue: 0, damping: 18, stiffness: 120, useNativeDriver: true }),
+        Animated.spring(imageOpacity, { toValue: 1, damping: 14, stiffness: 100, useNativeDriver: true }),
+      ]).start();
     }
     setTimeout(() => {
-      contentOpacity.value = withSpring(1, { damping: 16, stiffness: 120 });
+      Animated.spring(contentOpacity, { toValue: 1, damping: 16, stiffness: 120, useNativeDriver: true }).start();
     }, 200);
   }, []);
-
-  const imageAnimStyle = useAnimatedStyle(() => {
-    const h = imageHeight.value;
-    return {
-      height: h,
-      transform: [
-        { scale: imageScale.value },
-        { translateX: imageTranslateX.value },
-        { translateY: imageTranslateY.value },
-      ],
-      opacity: imageOpacity.value,
-    };
-  });
-
-  const contentAnimStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-  }));
 
   const { product, loading, error } = useProduct(productId);
   const favorites = useFavorites(user?.id);
@@ -168,13 +146,21 @@ export default function ProductDetailScreen({ navigation, route }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Image Gallery with layoutId-like entrance */}
-        <Animated.View style={imageAnimStyle}>
+        <Animated.View
+          style={{
+            height: imageHeight,
+            transform: [
+              { scale: imageScale },
+              { translateX: imageTranslateX },
+              { translateY: imageTranslateY },
+            ],
+            opacity: imageOpacity,
+          }}
+        >
           <ImageGallery images={images} />
         </Animated.View>
 
-        {/* Product Info */}
-        <Animated.View style={[{ padding: spacing.lg }, contentAnimStyle]}>
+        <Animated.View style={[{ padding: spacing.lg }, { opacity: contentOpacity }]}>
           <Text
             style={{
               fontSize: typography.fontSize.headlineSmall,
@@ -186,7 +172,6 @@ export default function ProductDetailScreen({ navigation, route }: any) {
             {product.title}
           </Text>
 
-          {/* Price */}
           <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: spacing.md }}>
             <Text
               style={{
@@ -226,7 +211,6 @@ export default function ProductDetailScreen({ navigation, route }: any) {
             )}
           </View>
 
-          {/* Rating & Views */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, gap: spacing.lg }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name="star" size={16} color={colors.warning} />
@@ -242,7 +226,6 @@ export default function ProductDetailScreen({ navigation, route }: any) {
             </View>
           </View>
 
-          {/* Stock status */}
           <View
             style={{
               marginTop: spacing.md,
@@ -270,7 +253,6 @@ export default function ProductDetailScreen({ navigation, route }: any) {
             </Text>
           </View>
 
-          {/* Variants */}
           <View style={{ marginTop: spacing.xl }}>
             <Text style={{ fontSize: typography.fontSize.bodyMedium, fontWeight: '600', color: colors.textPrimary, marginBottom: spacing.sm }}>
               اللون
@@ -304,7 +286,6 @@ export default function ProductDetailScreen({ navigation, route }: any) {
             </View>
           </View>
 
-          {/* Quantity */}
           <View style={{ marginTop: spacing.xl }}>
             <Text style={{ fontSize: typography.fontSize.bodyMedium, fontWeight: '600', color: colors.textPrimary, marginBottom: spacing.sm }}>
               الكمية
@@ -318,7 +299,6 @@ export default function ProductDetailScreen({ navigation, route }: any) {
             />
           </View>
 
-          {/* Description */}
           <View style={{ marginTop: spacing.xl }}>
             <Text style={{ fontSize: typography.fontSize.bodyMedium, fontWeight: '600', color: colors.textPrimary, marginBottom: spacing.sm }}>
               الوصف
@@ -334,7 +314,6 @@ export default function ProductDetailScreen({ navigation, route }: any) {
             </Text>
           </View>
 
-          {/* Action Buttons */}
           <View style={{ marginTop: spacing.xxl, gap: spacing.md }}>
             <TouchableOpacity
               activeOpacity={0.8}
@@ -417,7 +396,6 @@ export default function ProductDetailScreen({ navigation, route }: any) {
           </View>
         </Animated.View>
 
-        {/* Related Products */}
         {relatedProducts.length > 0 && (
           <View style={{ marginTop: spacing.xl, marginBottom: spacing.xxxl }}>
             <SectionHeader title="منتجات مشابهة" />

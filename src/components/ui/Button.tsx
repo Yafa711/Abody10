@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -6,13 +6,9 @@ import {
   StyleProp,
   ViewStyle,
   TextStyle,
+  Animated,
 } from 'react-native';
 import { useTheme } from '../../themes/ThemeContext';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -41,20 +37,15 @@ export default function Button({
   textStyle,
 }: ButtonProps) {
   const { colors, spacing, radius, typography } = useTheme();
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.97, { damping: 15 });
+    Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, damping: 15 }).start();
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15 });
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, damping: 15 }).start();
   };
 
   const sizeStyles: Record<ButtonSize, { paddingVertical: number; paddingHorizontal: number; fontSize: number }> = {
@@ -131,6 +122,8 @@ export default function Button({
 
   const variantStyle = variantStyles[variant];
 
+  const animStyle = { transform: [{ scale }], opacity };
+
   return (
     <AnimatedTouchable
       onPress={onPress}
@@ -138,7 +131,7 @@ export default function Button({
       onPressOut={handlePressOut}
       disabled={disabled || loading}
       activeOpacity={0.8}
-      style={[baseStyle, variantStyle.container, animatedStyle, style]}
+      style={[baseStyle, variantStyle.container, animStyle, style]}
     >
       {loading ? (
         <ActivityIndicator
